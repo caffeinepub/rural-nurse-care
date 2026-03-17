@@ -25,7 +25,15 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Edit, Loader2, Plus, ShieldAlert, Trash2, Upload } from "lucide-react";
+import {
+  Edit,
+  Loader2,
+  MapPin,
+  Plus,
+  ShieldAlert,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ExternalBlob, type Nurse } from "../backend";
@@ -42,8 +50,10 @@ interface NurseFormData {
   name: string;
   registrationNumber: string;
   phone: string;
+  village: string;
+  mandal: string;
+  district: string;
   pincode: string;
-  specialization: string;
   experience: string;
   bio: string;
   isAvailable: boolean;
@@ -54,8 +64,10 @@ const EMPTY_FORM: NurseFormData = {
   name: "",
   registrationNumber: "",
   phone: "",
+  village: "",
+  mandal: "",
+  district: "",
   pincode: "",
-  specialization: "",
   experience: "",
   bio: "",
   isAvailable: true,
@@ -103,13 +115,12 @@ function NurseForm({
           />
         </div>
         <div>
-          <Label htmlFor="phone">Phone *</Label>
+          <Label htmlFor="phone">Phone (optional)</Label>
           <Input
             id="phone"
             value={form.phone}
             onChange={(e) => set("phone", e.target.value)}
             placeholder="+91 XXXXX XXXXX"
-            required
             className="mt-1"
             data-ocid="admin.input"
           />
@@ -126,6 +137,42 @@ function NurseForm({
             data-ocid="admin.input"
           />
         </div>
+        <div className="sm:col-span-2">
+          <Label htmlFor="village">Village *</Label>
+          <Input
+            id="village"
+            value={form.village}
+            onChange={(e) => set("village", e.target.value)}
+            placeholder="e.g. Narasannapeta"
+            required
+            className="mt-1"
+            data-ocid="admin.input"
+          />
+        </div>
+        <div>
+          <Label htmlFor="mandal">Mandal *</Label>
+          <Input
+            id="mandal"
+            value={form.mandal}
+            onChange={(e) => set("mandal", e.target.value)}
+            placeholder="e.g. Narasannapeta"
+            required
+            className="mt-1"
+            data-ocid="admin.input"
+          />
+        </div>
+        <div>
+          <Label htmlFor="district">District *</Label>
+          <Input
+            id="district"
+            value={form.district}
+            onChange={(e) => set("district", e.target.value)}
+            placeholder="e.g. Srikakulam"
+            required
+            className="mt-1"
+            data-ocid="admin.input"
+          />
+        </div>
         <div>
           <Label htmlFor="pincode">Pincode *</Label>
           <Input
@@ -137,18 +184,6 @@ function NurseForm({
             placeholder="6-digit pincode"
             maxLength={6}
             inputMode="numeric"
-            required
-            className="mt-1"
-            data-ocid="admin.input"
-          />
-        </div>
-        <div>
-          <Label htmlFor="specialization">Specialization *</Label>
-          <Input
-            id="specialization"
-            value={form.specialization}
-            onChange={(e) => set("specialization", e.target.value)}
-            placeholder="e.g. General & Elderly Care"
             required
             className="mt-1"
             data-ocid="admin.input"
@@ -254,8 +289,10 @@ export function AdminPage() {
       name: form.name,
       registrationNumber: form.registrationNumber,
       phone: form.phone,
+      village: form.village,
+      mandal: form.mandal,
+      district: form.district,
       pincode: BigInt(form.pincode),
-      specialization: form.specialization,
       experience: BigInt(form.experience || "0"),
       bio: form.bio,
       isAvailable: form.isAvailable,
@@ -375,12 +412,17 @@ export function AdminPage() {
             const photoUrl = nurse.profilePhoto
               ? nurse.profilePhoto.getDirectURL()
               : "";
+            const locationParts = [nurse.village, nurse.mandal, nurse.district]
+              .filter(Boolean)
+              .join(", ");
             const editForm: NurseFormData = {
               name: nurse.name,
               registrationNumber: nurse.registrationNumber,
               phone: nurse.phone,
+              village: nurse.village || "",
+              mandal: nurse.mandal || "",
+              district: nurse.district || "",
               pincode: nurse.pincode.toString(),
-              specialization: nurse.specialization,
               experience: nurse.experience.toString(),
               bio: nurse.bio,
               isAvailable: nurse.isAvailable,
@@ -414,9 +456,12 @@ export function AdminPage() {
                         {nurse.isAvailable ? "Available" : "Unavailable"}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {nurse.specialization} · {Number(nurse.experience)} yrs ·{" "}
-                      {nurse.pincode.toString()}
+                    <p className="text-sm text-muted-foreground truncate flex items-center gap-1">
+                      <MapPin size={12} className="shrink-0" />
+                      {locationParts
+                        ? `${locationParts} — ${nurse.pincode.toString()}`
+                        : nurse.pincode.toString()}{" "}
+                      &middot; {Number(nurse.experience)} yrs exp
                     </p>
                     {nurse.registrationNumber && (
                       <p className="text-xs text-muted-foreground">

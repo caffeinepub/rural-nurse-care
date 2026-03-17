@@ -9,26 +9,15 @@ import { ExternalBlob } from "../backend";
 import { useRegisterNurse } from "../hooks/useQueries";
 import { v4 as uuidv4 } from "../utils/uuid";
 
-const SPECIALIZATIONS = [
-  "General Care",
-  "Elderly Care",
-  "Pediatric Care",
-  "Maternal & Child Health",
-  "Post-Surgical Care",
-  "Diabetes & Cardiac Care",
-  "Palliative Care",
-  "Physiotherapy Support",
-  "Wound Care",
-  "Mental Health Support",
-];
-
 interface FormState {
   name: string;
   registrationNumber: string;
   phone: string;
+  village: string;
+  mandal: string;
+  district: string;
   pincode: string;
   experience: string;
-  specialization: string;
   bio: string;
   isAvailable: boolean;
   photoFile: File | null;
@@ -38,9 +27,11 @@ const EMPTY: FormState = {
   name: "",
   registrationNumber: "",
   phone: "",
+  village: "",
+  mandal: "",
+  district: "",
   pincode: "",
   experience: "",
-  specialization: "",
   bio: "",
   isAvailable: true,
   photoFile: null,
@@ -67,9 +58,11 @@ export function NurseRegisterPage() {
         name: form.name,
         registrationNumber: form.registrationNumber,
         phone: form.phone,
+        village: form.village,
+        mandal: form.mandal,
+        district: form.district,
         pincode: BigInt(form.pincode),
         experience: BigInt(form.experience || "0"),
-        specialization: form.specialization,
         bio: form.bio,
         isAvailable: form.isAvailable,
         profilePhoto,
@@ -165,88 +158,119 @@ export function NurseRegisterPage() {
               </p>
             </div>
 
-            {/* Phone + Pincode */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="reg-phone" className="text-sm font-medium">
-                  Phone Number <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="reg-phone"
-                  value={form.phone}
-                  onChange={(e) => set("phone", e.target.value)}
-                  placeholder="+91 XXXXX XXXXX"
-                  inputMode="tel"
-                  required
-                  className="mt-1.5 h-12"
-                  data-ocid="register.input"
-                />
-              </div>
-              <div>
-                <Label htmlFor="reg-pincode" className="text-sm font-medium">
-                  6-digit Pincode <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="reg-pincode"
-                  value={form.pincode}
-                  onChange={(e) =>
-                    set(
-                      "pincode",
-                      e.target.value.replace(/\D/g, "").slice(0, 6),
-                    )
-                  }
-                  placeholder="e.g. 533001"
-                  inputMode="numeric"
-                  maxLength={6}
-                  required
-                  className="mt-1.5 h-12"
-                  data-ocid="register.input"
-                />
+            {/* Phone Number (optional) */}
+            <div>
+              <Label htmlFor="reg-phone" className="text-sm font-medium">
+                Phone Number{" "}
+                <span className="text-muted-foreground text-xs">
+                  (optional)
+                </span>
+              </Label>
+              <Input
+                id="reg-phone"
+                value={form.phone}
+                onChange={(e) => set("phone", e.target.value)}
+                placeholder="+91 XXXXX XXXXX"
+                inputMode="tel"
+                className="mt-1.5 h-12"
+                data-ocid="register.input"
+              />
+            </div>
+
+            {/* Address Section */}
+            <div>
+              <p className="text-sm font-semibold text-foreground mb-3">
+                Full Address <span className="text-destructive">*</span>
+              </p>
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="reg-village" className="text-sm font-medium">
+                    Village <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="reg-village"
+                    value={form.village}
+                    onChange={(e) => set("village", e.target.value)}
+                    placeholder="e.g. Narasannapeta"
+                    required
+                    className="mt-1.5 h-12"
+                    data-ocid="register.input"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="reg-mandal" className="text-sm font-medium">
+                      Mandal <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="reg-mandal"
+                      value={form.mandal}
+                      onChange={(e) => set("mandal", e.target.value)}
+                      placeholder="e.g. Narasannapeta"
+                      required
+                      className="mt-1.5 h-12"
+                      data-ocid="register.input"
+                    />
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="reg-district"
+                      className="text-sm font-medium"
+                    >
+                      District <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="reg-district"
+                      value={form.district}
+                      onChange={(e) => set("district", e.target.value)}
+                      placeholder="e.g. Srikakulam"
+                      required
+                      className="mt-1.5 h-12"
+                      data-ocid="register.input"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="reg-pincode" className="text-sm font-medium">
+                    6-digit Pincode <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="reg-pincode"
+                    value={form.pincode}
+                    onChange={(e) =>
+                      set(
+                        "pincode",
+                        e.target.value.replace(/\D/g, "").slice(0, 6),
+                      )
+                    }
+                    placeholder="e.g. 532001"
+                    inputMode="numeric"
+                    maxLength={6}
+                    required
+                    className="mt-1.5 h-12"
+                    data-ocid="register.input"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Experience + Specialization */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="reg-exp" className="text-sm font-medium">
-                  Years of Experience{" "}
-                  <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="reg-exp"
-                  type="number"
-                  min={0}
-                  max={60}
-                  value={form.experience}
-                  onChange={(e) => set("experience", e.target.value)}
-                  placeholder="e.g. 5"
-                  required
-                  className="mt-1.5 h-12"
-                  data-ocid="register.input"
-                />
-              </div>
-              <div>
-                <Label htmlFor="reg-spec" className="text-sm font-medium">
-                  Specialization <span className="text-destructive">*</span>
-                </Label>
-                <select
-                  id="reg-spec"
-                  value={form.specialization}
-                  onChange={(e) => set("specialization", e.target.value)}
-                  required
-                  className="mt-1.5 h-12 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                  data-ocid="register.select"
-                >
-                  <option value="" disabled>
-                    Select specialization
-                  </option>
-                  {SPECIALIZATIONS.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {/* Years of Experience */}
+            <div>
+              <Label htmlFor="reg-exp" className="text-sm font-medium">
+                Years of Experience <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="reg-exp"
+                type="number"
+                min={0}
+                max={60}
+                value={form.experience}
+                onChange={(e) => set("experience", e.target.value)}
+                placeholder="e.g. 5"
+                required
+                className="mt-1.5 h-12"
+                data-ocid="register.input"
+              />
             </div>
 
             {/* Bio */}

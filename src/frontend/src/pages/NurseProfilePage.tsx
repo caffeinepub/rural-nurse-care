@@ -66,6 +66,14 @@ export function NurseProfilePage() {
   }
 
   if (sampleNurse && !nurse) {
+    const sampleLocation = [
+      sampleNurse.village,
+      sampleNurse.mandal,
+      sampleNurse.district,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
     return (
       <div className="container mx-auto px-4 py-8">
         <button
@@ -102,9 +110,6 @@ export function NurseProfilePage() {
                   <h1 className="text-2xl md:text-3xl font-bold text-foreground">
                     {sampleNurse.name}
                   </h1>
-                  <p className="text-primary font-medium mt-1">
-                    {sampleNurse.specialization}
-                  </p>
                 </div>
                 <Badge
                   className={
@@ -123,7 +128,11 @@ export function NurseProfilePage() {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <MapPin size={14} className="text-primary" />
-                  <span>Pincode: {sampleNurse.pincode}</span>
+                  <span>
+                    {sampleLocation
+                      ? `${sampleLocation} — ${sampleNurse.pincode}`
+                      : `Pincode: ${sampleNurse.pincode}`}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <StarRating rating={4.5} size={16} />
@@ -188,6 +197,13 @@ export function NurseProfilePage() {
     .toUpperCase();
   const photoUrl = nurse.profilePhoto ? nurse.profilePhoto.getDirectURL() : "";
 
+  const locationParts = [nurse.village, nurse.mandal, nurse.district]
+    .filter(Boolean)
+    .join(", ");
+  const locationDisplay = locationParts
+    ? `${locationParts} — ${nurse.pincode.toString()}`
+    : `Pincode: ${nurse.pincode.toString()}`;
+
   return (
     <div className="container mx-auto px-4 py-8">
       <button
@@ -225,9 +241,6 @@ export function NurseProfilePage() {
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground">
                   {nurse.name}
                 </h1>
-                <p className="text-primary font-medium mt-1">
-                  {nurse.specialization}
-                </p>
               </div>
               <Badge
                 className={
@@ -247,7 +260,7 @@ export function NurseProfilePage() {
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin size={14} className="text-primary" />
-                <span>Pincode: {nurse.pincode.toString()}</span>
+                <span>{locationDisplay}</span>
               </div>
               {aggregateRating != null && (
                 <div className="flex items-center gap-1">

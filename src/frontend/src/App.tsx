@@ -6,6 +6,8 @@ import {
   createRoute,
   createRouter,
 } from "@tanstack/react-router";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
 import { Layout } from "./components/Layout";
 import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { AdminPage } from "./pages/AdminPage";
@@ -79,6 +81,63 @@ declare module "@tanstack/react-router" {
   }
 }
 
+function SplashScreen() {
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.85 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col items-center gap-4 px-8 text-center"
+      >
+        <motion.img
+          src="/assets/generated/rural-nurse-care-logo-transparent.dim_400x400.png"
+          alt="Rural Nurse Care Logo"
+          className="w-32 h-32 object-contain drop-shadow-lg"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        />
+        <h1
+          className="text-3xl font-bold mt-2"
+          style={{ color: "#0056b3", fontFamily: "Inter, sans-serif" }}
+        >
+          Welcome to Rural Nurse Care
+        </h1>
+        <div className="mt-4 flex gap-1.5">
+          {[0, 1, 2].map((i) => (
+            <motion.div
+              key={i}
+              className="w-2 h-2 rounded-full bg-blue-600"
+              animate={{ opacity: [0.3, 1, 0.3] }}
+              transition={{
+                duration: 1.2,
+                delay: i * 0.2,
+                repeat: Number.POSITIVE_INFINITY,
+              }}
+            />
+          ))}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 export default function App() {
-  return <RouterProvider router={router} />;
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <>
+      <AnimatePresence>
+        {showSplash && <SplashScreen key="splash" />}
+      </AnimatePresence>
+      {!showSplash && <RouterProvider router={router} />}
+    </>
+  );
 }

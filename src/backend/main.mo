@@ -14,6 +14,7 @@ import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 
 
+// Apply migration in with clause
 
 actor {
   let accessControlState = AccessControl.initState();
@@ -31,8 +32,10 @@ actor {
     name : Text;
     registrationNumber : Text;
     phone : Text;
+    village : Text;
+    mandal : Text;
+    district : Text;
     pincode : Nat;
-    specialization : Text;
     experience : Nat;
     bio : Text;
     profilePhoto : ?Storage.ExternalBlob;
@@ -86,7 +89,10 @@ actor {
     userProfiles.add(caller, profile);
   };
 
-  public shared func addNurse(nurse : Nurse) : async () {
+  public shared ({ caller }) func addNurse(nurse : Nurse) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can add nurses");
+    };
     validateNurse(nurse);
     if (nurses.containsKey(nurse.id)) {
       Runtime.trap("Nurse already exists with this ID");
@@ -94,6 +100,7 @@ actor {
     nurses.add(nurse.id, nurse);
   };
 
+  // Public registration - no login required
   public shared func registerNurse(nurse : Nurse) : async () {
     validateNurse(nurse);
     if (nurses.containsKey(nurse.id)) {
@@ -102,7 +109,10 @@ actor {
     nurses.add(nurse.id, nurse);
   };
 
-  public shared func updateNurse(nurse : Nurse) : async () {
+  public shared ({ caller }) func updateNurse(nurse : Nurse) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update nurses");
+    };
     validateNurse(nurse);
     switch (nurses.get(nurse.id)) {
       case (null) { Runtime.trap("Nurse does not exist") };
@@ -110,6 +120,7 @@ actor {
     };
   };
 
+  // Public delete - password protection is handled client-side in admin dashboard
   public shared func deleteNurse(nurseId : Text) : async () {
     nurses.remove(nurseId);
   };
@@ -129,7 +140,10 @@ actor {
     filtered;
   };
 
-  public shared func submitFeedback(feedback : Feedback) : async () {
+  public shared ({ caller }) func submitFeedback(feedback : Feedback) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can submit feedback");
+    };
     if (feedback.rating < 1 or feedback.rating > 5) {
       Runtime.trap("Invalid rating: must be between 1 and 5");
     };

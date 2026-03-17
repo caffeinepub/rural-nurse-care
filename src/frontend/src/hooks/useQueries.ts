@@ -3,74 +3,76 @@ import type { Feedback, Nurse } from "../backend";
 import { useActor } from "./useActor";
 
 export function useListAllNurses() {
-  const { actor, isFetching } = useActor();
+  const { actor } = useActor();
   return useQuery<Nurse[]>({
     queryKey: ["nurses"],
     queryFn: async () => {
       if (!actor) return [];
       return actor.listAllNurses();
     },
-    enabled: !!actor && !isFetching,
+    enabled: !!actor,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }
 
 export function useFilterByPincode(pincode: string) {
-  const { actor, isFetching } = useActor();
+  const { actor } = useActor();
   return useQuery<Nurse[]>({
     queryKey: ["nurses", "pincode", pincode],
     queryFn: async () => {
       if (!actor || !pincode) return [];
       return actor.filterByPincode(BigInt(pincode));
     },
-    enabled: !!actor && !isFetching && pincode.length === 6,
+    enabled: !!actor && pincode.length === 6,
   });
 }
 
 export function useGetNurse(id: string) {
-  const { actor, isFetching } = useActor();
+  const { actor } = useActor();
   return useQuery<Nurse | null>({
     queryKey: ["nurse", id],
     queryFn: async () => {
       if (!actor) return null;
       return actor.getNurse(id);
     },
-    enabled: !!actor && !isFetching && !!id,
+    enabled: !!actor && !!id,
   });
 }
 
 export function useGetNurseFeedback(nurseId: string) {
-  const { actor, isFetching } = useActor();
+  const { actor } = useActor();
   return useQuery<Feedback[]>({
     queryKey: ["feedback", nurseId],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getNurseFeedback(nurseId);
     },
-    enabled: !!actor && !isFetching && !!nurseId,
+    enabled: !!actor && !!nurseId,
   });
 }
 
 export function useGetAggregateRating(nurseId: string) {
-  const { actor, isFetching } = useActor();
+  const { actor } = useActor();
   return useQuery<number | null>({
     queryKey: ["rating", nurseId],
     queryFn: async () => {
       if (!actor) return null;
       return actor.getAggregateRating(nurseId);
     },
-    enabled: !!actor && !isFetching && !!nurseId,
+    enabled: !!actor && !!nurseId,
   });
 }
 
 export function useIsCallerAdmin() {
-  const { actor, isFetching } = useActor();
+  const { actor } = useActor();
   return useQuery<boolean>({
     queryKey: ["isAdmin"],
     queryFn: async () => {
       if (!actor) return false;
       return actor.isCallerAdmin();
     },
-    enabled: !!actor && !isFetching,
+    enabled: !!actor,
   });
 }
 

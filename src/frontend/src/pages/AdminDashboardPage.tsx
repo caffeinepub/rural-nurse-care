@@ -1,384 +1,271 @@
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Eye, EyeOff, LogOut, Shield, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Eye, EyeOff, RefreshCw, Shield, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { Nurse } from "../backend";
 import { useDeleteNurse, useListAllNurses } from "../hooks/useQueries";
 
 const ADMIN_PASSWORD = "RuralCare@Admin2024";
 
-function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+export function AdminDashboardPage() {
+  const [authed, setAuthed] = useState(
+    () => sessionStorage.getItem("adminAuth") === "true",
+  );
+  const [pw, setPw] = useState("");
+  const [pwError, setPwError] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  const { data: nurses, isLoading, refetch } = useListAllNurses();
+  const deleteMutation = useDeleteNurse();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (authed) {
+      qc.invalidateQueries({ queryKey: ["nurses"] });
+      refetch();
+    }
+  }, [authed, qc, refetch]);
+
+  function login(e: React.FormEvent) {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
+    if (pw === ADMIN_PASSWORD) {
       sessionStorage.setItem("adminAuth", "true");
-      setError("");
-      onUnlock();
+      setAuthed(true);
+      setPwError("");
     } else {
-      setError("Incorrect password. Please try again.");
+      setPwError("Incorrect password. Please try again.");
     }
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-medical-50 to-medical-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-xl border-medical-200">
-        <CardHeader className="text-center pb-4">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-full bg-medical-600 flex items-center justify-center">
-              <Shield className="w-8 h-8 text-white" />
+  function logout() {
+    sessionStorage.removeItem("adminAuth");
+    setAuthed(false);
+  }
+
+  function handleDelete(id: string) {
+    deleteMutation.mutate(id, {
+      onSuccess: () => {
+        toast.success("Nurse profile deleted.");
+        setConfirmId(null);
+      },
+      onError: () => {
+        toast.error("Failed to delete. Please try again.");
+        setConfirmId(null);
+      },
+    });
+  }
+
+  if (!authed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="w-full max-w-sm bg-white rounded-xl shadow-md p-6">
+          <div className="flex flex-col items-center mb-6">
+            <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center mb-3">
+              <Shield className="w-7 h-7 text-white" />
             </div>
+            <h1 className="text-xl font-bold text-gray-800">Admin Access</h1>
+            <p className="text-sm text-gray-500 mt-1">Rural Nurse Care</p>
           </div>
-          <CardTitle className="text-2xl font-bold text-medical-900">
-            Admin Dashboard
-          </CardTitle>
-          <CardDescription className="text-medical-600">
-            Enter admin password to continue
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={login} className="space-y-4">
             <div className="relative">
-              <Input
-                data-ocid="admin.input"
-                type={showPassword ? "text" : "password"}
+              <input
+                type={showPw ? "text" : "password"}
                 placeholder="Enter admin password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pr-10 border-medical-300 focus:border-medical-500"
+                value={pw}
+                onChange={(e) => setPw(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 autoComplete="current-password"
+                data-ocid="admin.input"
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-medical-400 hover:text-medical-600"
-                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                onClick={() => setShowPw(!showPw)}
               >
-                {showPassword ? (
+                {showPw ? (
                   <EyeOff className="w-4 h-4" />
                 ) : (
                   <Eye className="w-4 h-4" />
                 )}
               </button>
             </div>
-            {error && (
-              <p
-                data-ocid="admin.error_state"
-                className="text-destructive text-sm font-medium"
-              >
-                {error}
+            {pwError && (
+              <p className="text-red-500 text-sm" data-ocid="admin.error_state">
+                {pwError}
               </p>
             )}
-            <Button
-              data-ocid="admin.submit_button"
+            <button
               type="submit"
-              className="w-full bg-medical-600 hover:bg-medical-700 text-white"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 text-sm font-semibold transition-colors"
+              data-ocid="admin.submit_button"
             >
               Access Dashboard
-            </Button>
+            </button>
           </form>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-function NurseRow({
-  nurse,
-  index,
-  onDeleteClick,
-}: {
-  nurse: Nurse;
-  index: number;
-  onDeleteClick: (nurse: Nurse) => void;
-}) {
-  const initials = nurse.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
-  const photoUrl = nurse.profilePhoto?.getDirectURL();
-
-  return (
-    <TableRow
-      data-ocid={`nurses.item.${index}`}
-      className="hover:bg-medical-50"
-    >
-      <TableCell>
-        <Avatar className="h-10 w-10">
-          <AvatarImage src={photoUrl} alt={nurse.name} />
-          <AvatarFallback className="bg-medical-200 text-medical-700 text-xs font-semibold">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
-      </TableCell>
-      <TableCell className="font-medium text-medical-900">
-        {nurse.name}
-      </TableCell>
-      <TableCell className="text-sm text-muted-foreground font-mono">
-        {nurse.registrationNumber}
-      </TableCell>
-      <TableCell className="text-sm">{nurse.phone}</TableCell>
-      <TableCell className="text-sm">{String(nurse.pincode)}</TableCell>
-      <TableCell className="text-sm">{nurse.specialization || "—"}</TableCell>
-      <TableCell className="text-sm text-center">
-        {String(nurse.experience)}
-      </TableCell>
-      <TableCell>
-        <Badge
-          variant={nurse.isAvailable ? "default" : "secondary"}
-          className={
-            nurse.isAvailable
-              ? "bg-green-100 text-green-700 border-green-200"
-              : "bg-gray-100 text-gray-600"
-          }
-        >
-          {nurse.isAvailable ? "Active" : "Inactive"}
-        </Badge>
-      </TableCell>
-      <TableCell>
-        <Button
-          data-ocid={`nurses.delete_button.${index}`}
-          variant="destructive"
-          size="sm"
-          className="gap-1.5"
-          onClick={() => onDeleteClick(nurse)}
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-          Delete
-        </Button>
-      </TableCell>
-    </TableRow>
-  );
-}
-
-function AdminDashboardContent({ onLogout }: { onLogout: () => void }) {
-  const { data: nurses, isLoading } = useListAllNurses();
-  const deleteMutation = useDeleteNurse();
-  const [nurseToDelete, setNurseToDelete] = useState<Nurse | null>(null);
-
-  function handleConfirmDelete() {
-    if (!nurseToDelete) return;
-    deleteMutation.mutate(nurseToDelete.id, {
-      onSuccess: () => {
-        toast.success("Nurse profile deleted successfully.");
-        setNurseToDelete(null);
-      },
-      onError: () => {
-        toast.error("Failed to delete nurse profile. Please try again.");
-        setNurseToDelete(null);
-      },
-    });
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-medical-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-medical-600 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-medical-900">
-                Admin Dashboard
-              </h1>
-              <p className="text-xs text-medical-500">
-                Manage registered nurse profiles
-              </p>
-            </div>
+      <header className="bg-white border-b shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shield className="w-5 h-5 text-blue-600" />
+            <span className="font-bold text-gray-800">Admin Dashboard</span>
           </div>
-          <Button
-            data-ocid="admin.secondary_button"
-            variant="outline"
-            size="sm"
-            className="gap-2 border-medical-300 text-medical-700 hover:bg-medical-50"
-            onClick={onLogout}
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </Button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                qc.invalidateQueries({ queryKey: ["nurses"] });
+                refetch();
+              }}
+              className="text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded-lg px-3 py-1 flex items-center gap-1"
+              data-ocid="admin.secondary_button"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              Refresh
+            </button>
+            <button
+              type="button"
+              onClick={logout}
+              className="text-sm text-gray-500 hover:text-gray-800 border border-gray-300 rounded-lg px-3 py-1"
+              data-ocid="admin.button"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        <Card className="shadow-sm border-medical-200">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg text-medical-900">
-                  Registered Nurses
-                </CardTitle>
-                <CardDescription>
-                  {isLoading
-                    ? "Loading nurse records..."
-                    : `${nurses?.length ?? 0} nurse${(nurses?.length ?? 0) !== 1 ? "s" : ""} registered`}
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            {isLoading ? (
-              <div className="p-6 space-y-3" data-ocid="nurses.loading_state">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="flex items-center gap-4">
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                    <Skeleton className="h-4 flex-1" />
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-8 w-20" />
-                  </div>
-                ))}
-              </div>
-            ) : !nurses || nurses.length === 0 ? (
-              <div
-                data-ocid="nurses.empty_state"
-                className="flex flex-col items-center justify-center py-16 text-center"
-              >
-                <div className="w-16 h-16 rounded-full bg-medical-100 flex items-center justify-center mb-4">
-                  <Shield className="w-8 h-8 text-medical-400" />
-                </div>
-                <p className="text-lg font-medium text-medical-700">
-                  No nurses registered yet
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Nurse profiles will appear here once they register.
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table data-ocid="nurses.table">
-                  <TableHeader>
-                    <TableRow className="bg-medical-50 hover:bg-medical-50">
-                      <TableHead className="text-medical-700 font-semibold">
-                        Photo
-                      </TableHead>
-                      <TableHead className="text-medical-700 font-semibold">
-                        Name
-                      </TableHead>
-                      <TableHead className="text-medical-700 font-semibold">
-                        Reg. No.
-                      </TableHead>
-                      <TableHead className="text-medical-700 font-semibold">
-                        Phone
-                      </TableHead>
-                      <TableHead className="text-medical-700 font-semibold">
-                        Pincode
-                      </TableHead>
-                      <TableHead className="text-medical-700 font-semibold">
-                        Specialization
-                      </TableHead>
-                      <TableHead className="text-medical-700 font-semibold text-center">
-                        Exp (yrs)
-                      </TableHead>
-                      <TableHead className="text-medical-700 font-semibold">
-                        Status
-                      </TableHead>
-                      <TableHead className="text-medical-700 font-semibold">
-                        Actions
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {nurses.map((nurse, idx) => (
-                      <NurseRow
-                        key={nurse.id}
-                        nurse={nurse}
-                        index={idx + 1}
-                        onDeleteClick={setNurseToDelete}
-                      />
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </main>
+      <main className="max-w-4xl mx-auto px-4 py-6">
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">
+          Registered Nurses
+          {!isLoading && nurses && (
+            <span className="ml-2 text-sm font-normal text-gray-400">
+              ({nurses.length} total)
+            </span>
+          )}
+        </h2>
 
-      {/* Confirm Delete Dialog */}
-      <AlertDialog
-        open={!!nurseToDelete}
-        onOpenChange={(open) => !open && setNurseToDelete(null)}
-      >
-        <AlertDialogContent data-ocid="nurses.dialog">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Nurse Profile</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to permanently delete{" "}
-              <span className="font-semibold text-foreground">
-                {nurseToDelete?.name}
-              </span>
-              's profile? This will remove all their data and profile photo from
-              the database. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel data-ocid="nurses.cancel_button">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              data-ocid="nurses.confirm_button"
-              onClick={handleConfirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending ? "Deleting..." : "Delete Profile"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        {isLoading && (
+          <div
+            className="text-center py-12 text-gray-400"
+            data-ocid="admin.loading_state"
+          >
+            Loading nurses...
+          </div>
+        )}
+
+        {!isLoading && (!nurses || nurses.length === 0) && (
+          <div
+            className="text-center py-12 bg-white rounded-xl border"
+            data-ocid="admin.empty_state"
+          >
+            <p className="text-gray-500">No nurses registered yet.</p>
+          </div>
+        )}
+
+        {!isLoading && nurses && nurses.length > 0 && (
+          <div className="space-y-3" data-ocid="admin.list">
+            {nurses.map((nurse, idx) => {
+              let photoUrl: string | undefined;
+              try {
+                photoUrl = nurse.profilePhoto?.getDirectURL();
+              } catch {
+                photoUrl = undefined;
+              }
+              const initials = (nurse.name || "?")
+                .split(" ")
+                .map((n: string) => n[0] || "")
+                .join("")
+                .toUpperCase()
+                .slice(0, 2);
+
+              return (
+                <div
+                  key={nurse.id}
+                  className="bg-white rounded-xl border shadow-sm p-4 flex items-center gap-4"
+                  data-ocid={`admin.item.${idx + 1}`}
+                >
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden shrink-0">
+                    {photoUrl ? (
+                      <img
+                        src={photoUrl}
+                        alt={nurse.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <span className="text-blue-600 font-bold text-sm">
+                        {initials}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-800 truncate">
+                      {nurse.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Reg: {nurse.registrationNumber} &middot; Pincode:{" "}
+                      {String(nurse.pincode)}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {nurse.phone} &middot; {String(nurse.experience)} yrs exp
+                    </p>
+                    {(nurse.village || nurse.mandal || nurse.district) && (
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {[nurse.village, nurse.mandal, nurse.district]
+                          .filter(Boolean)
+                          .join(", ")}
+                      </p>
+                    )}
+                  </div>
+
+                  {confirmId === nurse.id ? (
+                    <div className="flex gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(nurse.id)}
+                        disabled={deleteMutation.isPending}
+                        className="text-xs bg-red-600 text-white rounded-lg px-3 py-1.5 font-semibold"
+                        data-ocid={`admin.confirm_button.${idx + 1}`}
+                      >
+                        {deleteMutation.isPending ? "Deleting..." : "Confirm"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmId(null)}
+                        className="text-xs border border-gray-300 rounded-lg px-3 py-1.5"
+                        data-ocid={`admin.cancel_button.${idx + 1}`}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="shrink-0 gap-1.5"
+                      onClick={() => setConfirmId(nurse.id)}
+                      data-ocid={`admin.delete_button.${idx + 1}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Delete
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </main>
     </div>
   );
-}
-
-export function AdminDashboardPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => sessionStorage.getItem("adminAuth") === "true",
-  );
-
-  function handleLogout() {
-    sessionStorage.removeItem("adminAuth");
-    setIsAuthenticated(false);
-  }
-
-  if (!isAuthenticated) {
-    return <PasswordGate onUnlock={() => setIsAuthenticated(true)} />;
-  }
-
-  return <AdminDashboardContent onLogout={handleLogout} />;
 }

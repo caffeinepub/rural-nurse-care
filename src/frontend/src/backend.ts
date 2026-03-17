@@ -109,8 +109,10 @@ export interface Nurse {
     profilePhoto?: ExternalBlob;
     isAvailable: boolean;
     registrationNumber: string;
+    district: string;
     experience: bigint;
-    specialization: string;
+    village: string;
+    mandal: string;
     phone: string;
     pincode: bigint;
 }
@@ -529,8 +531,10 @@ async function from_candid_record_n15(_uploadFile: (file: ExternalBlob) => Promi
     profilePhoto: [] | [_ExternalBlob];
     isAvailable: boolean;
     registrationNumber: string;
+    district: string;
     experience: bigint;
-    specialization: string;
+    village: string;
+    mandal: string;
     phone: string;
     pincode: bigint;
 }): Promise<{
@@ -540,8 +544,10 @@ async function from_candid_record_n15(_uploadFile: (file: ExternalBlob) => Promi
     profilePhoto?: ExternalBlob;
     isAvailable: boolean;
     registrationNumber: string;
+    district: string;
     experience: bigint;
-    specialization: string;
+    village: string;
+    mandal: string;
     phone: string;
     pincode: bigint;
 }> {
@@ -552,8 +558,10 @@ async function from_candid_record_n15(_uploadFile: (file: ExternalBlob) => Promi
         profilePhoto: record_opt_to_undefined(await from_candid_opt_n16(_uploadFile, _downloadFile, value.profilePhoto)),
         isAvailable: value.isAvailable,
         registrationNumber: value.registrationNumber,
+        district: value.district,
         experience: value.experience,
-        specialization: value.specialization,
+        village: value.village,
+        mandal: value.mandal,
         phone: value.phone,
         pincode: value.pincode
     };
@@ -709,8 +717,10 @@ async function to_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<
     profilePhoto?: ExternalBlob;
     isAvailable: boolean;
     registrationNumber: string;
+    district: string;
     experience: bigint;
-    specialization: string;
+    village: string;
+    mandal: string;
     phone: string;
     pincode: bigint;
 }): Promise<{
@@ -720,8 +730,10 @@ async function to_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<
     profilePhoto: [] | [_ExternalBlob];
     isAvailable: boolean;
     registrationNumber: string;
+    district: string;
     experience: bigint;
-    specialization: string;
+    village: string;
+    mandal: string;
     phone: string;
     pincode: bigint;
 }> {
@@ -732,8 +744,10 @@ async function to_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<
         profilePhoto: value.profilePhoto ? candid_some(await to_candid_ExternalBlob_n10(_uploadFile, _downloadFile, value.profilePhoto)) : candid_none(),
         isAvailable: value.isAvailable,
         registrationNumber: value.registrationNumber,
+        district: value.district,
         experience: value.experience,
-        specialization: value.specialization,
+        village: value.village,
+        mandal: value.mandal,
         phone: value.phone,
         pincode: value.pincode
     };

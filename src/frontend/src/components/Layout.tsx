@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { CrossIcon, Heart, Mail, Menu, Phone, X } from "lucide-react";
+import { Heart, Mail, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { DisclaimerPopup } from "./DisclaimerPopup";
@@ -7,9 +7,11 @@ import { DisclaimerPopup } from "./DisclaimerPopup";
 function Logo() {
   return (
     <Link to="/" className="flex items-center gap-2" data-ocid="nav.link">
-      <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-        <CrossIcon size={16} className="text-primary-foreground" />
-      </div>
+      <img
+        src="/assets/generated/rural-nurse-care-logo-transparent.dim_400x400.png"
+        alt="Rural Nurse Care Logo"
+        className="h-10 w-10 object-contain"
+      />
       <span className="font-bold text-lg text-foreground">
         <span className="text-primary">Rural</span>Nurse Care
       </span>
@@ -18,6 +20,7 @@ function Logo() {
 }
 
 const NAV_LINKS = [
+  { label: "Home", to: "/" },
   { label: "Find a Nurse", to: "/nurses" },
   { label: "Register as Nurse", to: "/register" },
   { label: "How It Works", to: "/#how-it-works" },
@@ -129,8 +132,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="container mx-auto px-4 py-10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <Logo />
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+              <div className="flex items-center gap-3 mb-3">
+                <img
+                  src="/assets/generated/rural-nurse-care-logo-transparent.dim_400x400.png"
+                  alt="Rural Nurse Care Logo"
+                  className="h-12 w-12 object-contain"
+                />
+                <span className="font-bold text-lg text-foreground">
+                  <span className="text-primary">Rural</span>Nurse Care
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 Connecting rural patients with trusted local nurses. Quality
                 care, just a call away.
               </p>
@@ -141,6 +153,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </h4>
               <ul className="space-y-2">
                 {[
+                  { label: "Home", to: "/" },
                   { label: "Find a Nurse", to: "/nurses" },
                   { label: "Register as Nurse", to: "/register" },
                   { label: "How It Works", to: "/#how-it-works" },
@@ -164,32 +177,59 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </h4>
               <ul className="space-y-2">
                 <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Phone size={14} className="text-primary" />
-                  <span>+91 1800-CARE-NOW</span>
-                </li>
-                <li className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Mail size={14} className="text-primary" />
-                  <span>support@ruralnursecare.in</span>
+                  <a
+                    href="mailto:patnana.yuva@gmail.com"
+                    className="hover:text-primary transition-colors"
+                  >
+                    patnana.yuva@gmail.com
+                  </a>
                 </li>
               </ul>
             </div>
           </div>
 
           {/* Disclaimer box */}
-          <div className="mt-8 bg-warning/15 border border-warning/40 rounded-xl px-5 py-4 space-y-2">
-            <p className="text-sm text-foreground leading-relaxed">
-              <span className="font-semibold">⚠️ Disclaimer:</span> This app is
-              an informational platform connecting patients with independent
-              nurses. It is{" "}
-              <strong>NOT a substitute for professional medical advice</strong>{" "}
-              or emergency services. In case of emergency, call{" "}
-              <span className="font-bold text-destructive">108</span> or visit
-              the nearest Government Hospital.
+          <div className="mt-8 bg-warning/15 border border-warning/40 rounded-xl px-5 py-4 space-y-3">
+            <p className="text-sm font-semibold text-foreground">
+              ⚠️ Disclaimer / నిరాకరణ
             </p>
-            <p className="text-xs text-muted-foreground">
-              అత్యవసర పరిస్థితుల్లో దయచేసి{" "}
+            <p className="text-sm text-foreground leading-relaxed">
+              This platform is an independent information service connecting
+              patients with nursing professionals.{" "}
+              <strong>Rural Nurse Care/Unique Yuva</strong> does not employ
+              these nurses, nor do we verify their daily clinical conduct.
+            </p>
+            <p className="text-sm text-foreground leading-relaxed">
+              <strong>Financial Responsibility:</strong> All financial
+              transactions and service charges must be settled directly between
+              the patient and the nurse. We do not collect any commission or
+              payments, and we are not responsible for any financial disputes or
+              losses.
+            </p>
+            <p className="text-sm text-foreground leading-relaxed">
+              <strong>Medical Advice:</strong> In emergencies, do not rely on
+              this app; immediately call{" "}
+              <span className="font-bold text-destructive">108</span> or visit
+              the nearest Government PHC/Hospital. Use of this app is at your
+              own risk.
+            </p>
+            <hr className="border-warning/30" />
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              <strong className="text-foreground">గమనిక:</strong> ఈ యాప్ కేవలం
+              రోగులకు మరియు నర్సులకు మధ్య ఒక వారధిగా మాత్రమే పనిచేస్తుంది.
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              <strong className="text-foreground">డబ్బుల చెల్లింపులు:</strong>{" "}
+              నర్సులకు ఇచ్చే ఫీజు లేదా ఇతర నగదు లావాదేవీలతో ఈ యాప్‌కు ఎటువంటి సంబంధం లేదు. మీ మధ్య
+              జరిగే ఆర్థికపరమైన లావాదేవీలకు మీరే బాధ్యులు.
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              <strong className="text-foreground">వైద్య సలహా:</strong> అత్యవసర
+              పరిస్థితుల్లో ఈ యాప్‌పై ఆధారపడకుండా వెంటనే{" "}
               <span className="font-bold text-destructive">108</span> కి కాల్ చేయండి
-              లేదా సమీప ప్రభుత్వ ఆసుపత్రిని సంప్రదించండి.
+              లేదా దగ్గరలోని ప్రభుత్వ ఆసుపత్రిని సంప్రదించండి. నర్సులు అందించే చికిత్సకు లేదా వారి
+              ప్రవర్తనకు ఈ యాప్ యాజమాన్యం బాధ్యత వహించదు.
             </p>
           </div>
 

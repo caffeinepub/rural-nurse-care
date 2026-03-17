@@ -11,7 +11,12 @@ interface NurseCardProps {
 }
 
 export function NurseCard({ nurse, index = 1 }: NurseCardProps) {
-  const photoUrl = nurse.profilePhoto ? nurse.profilePhoto.getDirectURL() : "";
+  let photoUrl = "";
+  try {
+    photoUrl = nurse.profilePhoto ? nurse.profilePhoto.getDirectURL() : "";
+  } catch {
+    photoUrl = "";
+  }
   const initials = nurse.name
     .split(" ")
     .map((n) => n[0])
@@ -19,64 +24,97 @@ export function NurseCard({ nurse, index = 1 }: NurseCardProps) {
     .slice(0, 2)
     .toUpperCase();
 
+  const locationParts = [nurse.village, nurse.mandal, nurse.district]
+    .filter(Boolean)
+    .join(", ");
+  const locationDisplay = locationParts
+    ? `${locationParts} — ${nurse.pincode.toString()}`
+    : nurse.pincode.toString();
+
   return (
     <Card
-      className="overflow-hidden card-shadow border-border hover:shadow-md transition-shadow duration-200"
+      className="overflow-hidden border border-blue-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
+      style={{
+        borderRadius: "20px",
+        boxShadow: "0 2px 12px rgba(0,86,179,0.10)",
+      }}
       data-ocid={`nurses.item.${index}`}
     >
-      <CardContent className="p-0">
-        <Link to="/nurses/$id" params={{ id: nurse.id }} className="block">
-          <div className="relative h-48 bg-secondary flex items-center justify-center overflow-hidden">
-            <Avatar className="w-32 h-32">
+      <CardContent className="p-5">
+        <div className="flex gap-4 items-start">
+          {/* Circular profile with ring */}
+          <div className="shrink-0">
+            <Avatar
+              className="w-20 h-20 ring-2 ring-blue-600 ring-offset-2"
+              style={{ borderRadius: "50%" }}
+            >
               <AvatarImage
                 src={photoUrl}
                 alt={nurse.name}
                 className="object-cover"
               />
-              <AvatarFallback className="text-3xl font-bold bg-primary text-primary-foreground">
+              <AvatarFallback
+                className="text-xl font-bold"
+                style={{ background: "#dbeafe", color: "#0056b3" }}
+              >
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute top-3 right-3">
+          </div>
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2">
+              <Link to="/nurses/$id" params={{ id: nurse.id }}>
+                <h3
+                  className="font-bold text-base hover:underline leading-tight"
+                  style={{ color: "#0056b3" }}
+                >
+                  {nurse.name}
+                </h3>
+              </Link>
               <Badge
-                className={
+                className={`shrink-0 text-xs ${
                   nurse.isAvailable
-                    ? "bg-accent text-accent-foreground"
-                    : "bg-muted text-muted-foreground"
-                }
+                    ? "bg-green-100 text-green-700"
+                    : "bg-gray-100 text-gray-500"
+                }`}
               >
-                {nurse.isAvailable ? "Available" : "Unavailable"}
+                {nurse.isAvailable ? "Available" : "Busy"}
               </Badge>
             </div>
-          </div>
-        </Link>
-        <div className="p-4">
-          <Link to="/nurses/$id" params={{ id: nurse.id }}>
-            <h3 className="font-semibold text-lg text-foreground hover:text-primary transition-colors">
-              {nurse.name}
-            </h3>
-          </Link>
-          <p className="text-muted-foreground text-sm mt-0.5">
-            {nurse.specialization}
-          </p>
-          <div className="flex flex-col gap-1.5 mt-3">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock size={14} className="text-primary" />
-              <span>{Number(nurse.experience)} years experience</span>
+
+            {nurse.registrationNumber && (
+              <div className="flex items-center mt-0.5 flex-wrap gap-1">
+                <span className="text-xs text-gray-500">
+                  Reg: {nurse.registrationNumber}
+                </span>
+                <span className="inline-flex items-center gap-0.5 bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                  ✓ Verified
+                </span>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
+              <div className="flex items-center gap-1 text-xs text-gray-500">
+                <Clock size={12} style={{ color: "#0056b3" }} />
+                <span>{Number(nurse.experience)} yrs exp</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-gray-500">
+                <MapPin size={12} style={{ color: "#0056b3" }} />
+                <span>{locationDisplay}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin size={14} className="text-primary" />
-              <span>Pincode: {nurse.pincode.toString()}</span>
-            </div>
+
+            <a
+              href={`tel:${nurse.phone}`}
+              className="call-btn mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl font-semibold text-sm"
+              data-ocid={`nurses.button.${index}`}
+            >
+              <Phone size={15} />
+              Call Now
+            </a>
           </div>
-          <a
-            href={`tel:${nurse.phone}`}
-            className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 rounded-lg call-btn font-semibold text-sm transition-colors"
-            data-ocid={`nurses.button.${index}`}
-          >
-            <Phone size={16} />
-            Call Now
-          </a>
         </div>
       </CardContent>
     </Card>
@@ -85,7 +123,6 @@ export function NurseCard({ nurse, index = 1 }: NurseCardProps) {
 
 interface SampleNurseCardProps {
   name: string;
-  specialization: string;
   experience: number;
   pincode: string;
   phone: string;
@@ -93,12 +130,15 @@ interface SampleNurseCardProps {
   photoUrl: string;
   initials: string;
   id: string;
+  registrationNumber?: string;
+  village?: string;
+  mandal?: string;
+  district?: string;
   index?: number;
 }
 
 export function SampleNurseCard({
   name,
-  specialization,
   experience,
   pincode,
   phone,
@@ -106,62 +146,95 @@ export function SampleNurseCard({
   photoUrl,
   initials,
   id,
+  registrationNumber,
+  village,
+  mandal,
+  district,
   index = 1,
 }: SampleNurseCardProps) {
+  const locationParts = [village, mandal, district].filter(Boolean).join(", ");
+  const locationDisplay = locationParts
+    ? `${locationParts} — ${pincode}`
+    : pincode;
+
   return (
     <Card
-      className="overflow-hidden card-shadow border-border hover:shadow-md transition-shadow duration-200"
+      className="overflow-hidden border border-blue-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
+      style={{
+        borderRadius: "20px",
+        boxShadow: "0 2px 12px rgba(0,86,179,0.10)",
+      }}
       data-ocid={`nurses.item.${index}`}
     >
-      <CardContent className="p-0">
-        <Link to="/nurses/$id" params={{ id }} className="block">
-          <div className="relative h-48 bg-secondary flex items-center justify-center overflow-hidden">
-            <Avatar className="w-32 h-32">
+      <CardContent className="p-5">
+        <div className="flex gap-4 items-start">
+          <div className="shrink-0">
+            <Avatar
+              className="w-20 h-20 ring-2 ring-blue-600 ring-offset-2"
+              style={{ borderRadius: "50%" }}
+            >
               <AvatarImage src={photoUrl} alt={name} className="object-cover" />
-              <AvatarFallback className="text-3xl font-bold bg-primary text-primary-foreground">
+              <AvatarFallback
+                className="text-xl font-bold"
+                style={{ background: "#dbeafe", color: "#0056b3" }}
+              >
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute top-3 right-3">
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2">
+              <Link to="/nurses/$id" params={{ id }}>
+                <h3
+                  className="font-bold text-base hover:underline leading-tight"
+                  style={{ color: "#0056b3" }}
+                >
+                  {name}
+                </h3>
+              </Link>
               <Badge
-                className={
+                className={`shrink-0 text-xs ${
                   isAvailable
-                    ? "bg-accent text-accent-foreground"
-                    : "bg-muted text-muted-foreground"
-                }
+                    ? "bg-green-100 text-green-700"
+                    : "bg-gray-100 text-gray-500"
+                }`}
               >
-                {isAvailable ? "Available" : "Unavailable"}
+                {isAvailable ? "Available" : "Busy"}
               </Badge>
             </div>
-          </div>
-        </Link>
-        <div className="p-4">
-          <Link to="/nurses/$id" params={{ id }}>
-            <h3 className="font-semibold text-lg text-foreground hover:text-primary transition-colors">
-              {name}
-            </h3>
-          </Link>
-          <p className="text-muted-foreground text-sm mt-0.5">
-            {specialization}
-          </p>
-          <div className="flex flex-col gap-1.5 mt-3">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock size={14} className="text-primary" />
-              <span>{experience} years experience</span>
+
+            {registrationNumber && (
+              <div className="flex items-center mt-0.5 flex-wrap gap-1">
+                <span className="text-xs text-gray-500">
+                  Reg: {registrationNumber}
+                </span>
+                <span className="inline-flex items-center gap-0.5 bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                  ✓ Verified
+                </span>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
+              <div className="flex items-center gap-1 text-xs text-gray-500">
+                <Clock size={12} style={{ color: "#0056b3" }} />
+                <span>{experience} yrs exp</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-gray-500">
+                <MapPin size={12} style={{ color: "#0056b3" }} />
+                <span>{locationDisplay}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin size={14} className="text-primary" />
-              <span>Pincode: {pincode}</span>
-            </div>
+
+            <a
+              href={`tel:${phone}`}
+              className="call-btn mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl font-semibold text-sm"
+              data-ocid={`nurses.button.${index}`}
+            >
+              <Phone size={15} />
+              Call Now
+            </a>
           </div>
-          <a
-            href={`tel:${phone}`}
-            className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 rounded-lg call-btn font-semibold text-sm transition-colors"
-            data-ocid={`nurses.button.${index}`}
-          >
-            <Phone size={16} />
-            Call Now
-          </a>
         </div>
       </CardContent>
     </Card>

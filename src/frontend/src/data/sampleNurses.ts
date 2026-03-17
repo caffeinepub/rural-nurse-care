@@ -1,7 +1,6 @@
 export interface SampleNurse {
   id: string;
   name: string;
-  specialization: string;
   experience: number;
   pincode: string;
   phone: string;
@@ -10,86 +9,101 @@ export interface SampleNurse {
   photoUrl: string;
   initials: string;
   registrationNumber: string;
+  village?: string;
+  mandal?: string;
+  district?: string;
 }
 
 export const SAMPLE_NURSES: SampleNurse[] = [
   {
     id: "sample-1",
     name: "Priya Sharma",
-    specialization: "General & Elderly Care",
     experience: 9,
-    pincode: "462001",
+    pincode: "532001",
     phone: "+91 98765 43210",
-    bio: "Experienced nurse specializing in geriatric care and chronic disease management. Provides compassionate home visits for elderly patients in rural Bhopal region.",
+    bio: "Experienced nurse specializing in geriatric care and chronic disease management. Provides compassionate home visits for elderly patients across Srikakulam district.",
     isAvailable: true,
     photoUrl: "/assets/generated/nurse-priya.dim_400x400.jpg",
     initials: "PS",
-    registrationNumber: "NC-SAMPLE-001",
+    registrationNumber: "AP/RN/2015/04521",
+    village: "Narasannapeta",
+    mandal: "Narasannapeta",
+    district: "Srikakulam",
   },
   {
     id: "sample-2",
     name: "Rajesh Kumar",
-    specialization: "Post-Surgical Care",
     experience: 12,
-    pincode: "462001",
+    pincode: "532001",
     phone: "+91 87654 32109",
     bio: "Skilled in post-operative wound care, IV therapy, and rehabilitation support. Trusted by hundreds of families across rural districts.",
     isAvailable: true,
     photoUrl: "/assets/generated/nurse-rajesh.dim_400x400.jpg",
     initials: "RK",
-    registrationNumber: "NC-SAMPLE-002",
+    registrationNumber: "AP/RN/2012/02108",
+    village: "Amadalavalasa",
+    mandal: "Amadalavalasa",
+    district: "Srikakulam",
   },
   {
     id: "sample-3",
     name: "Anita Verma",
-    specialization: "Maternal & Child Health",
     experience: 7,
-    pincode: "462011",
+    pincode: "532201",
     phone: "+91 76543 21098",
     bio: "Dedicated to maternal and neonatal health, antenatal care, and immunization. Committed to reducing infant mortality in underserved communities.",
     isAvailable: true,
     photoUrl: "/assets/generated/nurse-anita.dim_400x400.jpg",
     initials: "AV",
-    registrationNumber: "NC-SAMPLE-003",
+    registrationNumber: "AP/RN/2017/03312",
+    village: "Palakonda",
+    mandal: "Palakonda",
+    district: "Srikakulam",
   },
   {
     id: "sample-4",
     name: "Sunita Patel",
-    specialization: "Diabetes & Cardiac Care",
     experience: 15,
-    pincode: "462021",
+    pincode: "532401",
     phone: "+91 65432 10987",
     bio: "Specialized in diabetic foot care, insulin management, and blood pressure monitoring. Brings clinical expertise directly to patients' homes.",
     isAvailable: false,
     photoUrl: "",
     initials: "SP",
-    registrationNumber: "NC-SAMPLE-004",
+    registrationNumber: "AP/RN/2009/01205",
+    village: "Tekkali",
+    mandal: "Tekkali",
+    district: "Srikakulam",
   },
   {
     id: "sample-5",
     name: "Mohan Singh",
-    specialization: "Palliative & Pain Management",
     experience: 10,
-    pincode: "462031",
+    pincode: "532421",
     phone: "+91 54321 09876",
     bio: "Compassionate care for patients with serious illness, focusing on comfort, dignity, and quality of life during difficult times.",
     isAvailable: true,
     photoUrl: "",
     initials: "MS",
-    registrationNumber: "NC-SAMPLE-005",
+    registrationNumber: "AP/RN/2014/03087",
+    village: "Kaviti",
+    mandal: "Kaviti",
+    district: "Srikakulam",
   },
   {
     id: "sample-6",
     name: "Kavita Rao",
-    specialization: "Physiotherapy Support",
     experience: 6,
-    pincode: "462041",
+    pincode: "532440",
     phone: "+91 43210 98765",
     bio: "Provides physiotherapy-assisted care and mobility support for stroke recovery, orthopaedic patients, and accident victims in rural areas.",
     isAvailable: true,
     photoUrl: "",
     initials: "KR",
-    registrationNumber: "NC-SAMPLE-006",
+    registrationNumber: "AP/RN/2018/05641",
+    village: "Rajam",
+    mandal: "Rajam",
+    district: "Srikakulam",
   },
 ];
 

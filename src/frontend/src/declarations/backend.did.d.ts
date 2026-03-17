@@ -27,8 +27,10 @@ export interface Nurse {
   'profilePhoto' : [] | [ExternalBlob],
   'isAvailable' : boolean,
   'registrationNumber' : string,
+  'district' : string,
   'experience' : bigint,
-  'specialization' : string,
+  'village' : string,
+  'mandal' : string,
   'phone' : string,
   'pincode' : bigint,
 }

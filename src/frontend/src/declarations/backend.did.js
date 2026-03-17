@@ -27,8 +27,10 @@ export const Nurse = IDL.Record({
   'profilePhoto' : IDL.Opt(ExternalBlob),
   'isAvailable' : IDL.Bool,
   'registrationNumber' : IDL.Text,
+  'district' : IDL.Text,
   'experience' : IDL.Nat,
-  'specialization' : IDL.Text,
+  'village' : IDL.Text,
+  'mandal' : IDL.Text,
   'phone' : IDL.Text,
   'pincode' : IDL.Nat,
 });
@@ -129,8 +131,10 @@ export const idlFactory = ({ IDL }) => {
     'profilePhoto' : IDL.Opt(ExternalBlob),
     'isAvailable' : IDL.Bool,
     'registrationNumber' : IDL.Text,
+    'district' : IDL.Text,
     'experience' : IDL.Nat,
-    'specialization' : IDL.Text,
+    'village' : IDL.Text,
+    'mandal' : IDL.Text,
     'phone' : IDL.Text,
     'pincode' : IDL.Nat,
   });
