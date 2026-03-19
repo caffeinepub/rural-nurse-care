@@ -52,9 +52,19 @@ actor {
     createdAt : Time.Time;
   };
 
+  public type ServiceProof = {
+    id : Text;
+    nurseId : Text;
+    description : Text;
+    photoUrls : [Storage.ExternalBlob];
+    videoUrl : ?Storage.ExternalBlob;
+    createdAt : Time.Time;
+  };
+
   let userProfiles = Map.empty<Principal, UserProfile>();
   let nurses = Map.empty<Text, Nurse>();
   let feedbacks = Map.empty<Text, Feedback>();
+  let serviceProofs = Map.empty<Text, ServiceProof>();
 
   module Feedback {
     public func compareByCreatedAt(a : Feedback, b : Feedback) : Order.Order {
@@ -109,10 +119,8 @@ actor {
     nurses.add(nurse.id, nurse);
   };
 
-  public shared ({ caller }) func updateNurse(nurse : Nurse) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can update nurses");
-    };
+  // Public update - password protection handled client-side in admin dashboard
+  public shared func updateNurse(nurse : Nurse) : async () {
     validateNurse(nurse);
     switch (nurses.get(nurse.id)) {
       case (null) { Runtime.trap("Nurse does not exist") };
@@ -120,7 +128,7 @@ actor {
     };
   };
 
-  // Public delete - password protection is handled client-side in admin dashboard
+  // Public delete - password protection handled client-side in admin dashboard
   public shared func deleteNurse(nurseId : Text) : async () {
     nurses.remove(nurseId);
   };
@@ -177,6 +185,50 @@ actor {
 
     let avgRating = totalRatings.toFloat() / nurseFeedbacks.size().toInt().toFloat();
     ?avgRating;
+  };
+
+  // Service Proof Logic
+
+  // Public - no login required
+  public shared func addServiceProof(proof : ServiceProof) : async () {
+    if (serviceProofs.containsKey(proof.id)) {
+      Runtime.trap("Service proof already exists with this ID");
+    };
+    serviceProofs.add(proof.id, proof);
+  };
+
+  // Public update - password protection handled client-side in admin dashboard
+  public shared func updateServiceProof(proof : ServiceProof) : async () {
+    switch (serviceProofs.get(proof.id)) {
+      case (null) { Runtime.trap("Service proof does not exist") };
+      case (?_) { serviceProofs.add(proof.id, proof) };
+    };
+  };
+
+  // Public delete - password protection handled client-side in admin dashboard
+  public shared func deleteServiceProof(proofId : Text) : async () {
+    serviceProofs.remove(proofId);
+  };
+
+  public query func getNurseServiceProofs(nurseId : Text) : async [ServiceProof] {
+    let filtered = serviceProofs.values().toArray().filter(
+      func(proof) { proof.nurseId == nurseId }
+    );
+    filtered;
+  };
+
+  public query func listAllServiceProofs() : async [ServiceProof] {
+    serviceProofs.values().toArray();
+  };
+
+  // Helper to find nurse by registrationNumber + phone
+  public query func findNurseByCredentials(registrationNumber : Text, phone : Text) : async ?Nurse {
+    let allNurses = nurses.values().toArray();
+    allNurses.find(
+      func(nurse) {
+        nurse.registrationNumber == registrationNumber and nurse.phone == phone
+      }
+    );
   };
 
   func validateNurse(nurse : Nurse) {

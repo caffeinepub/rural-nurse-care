@@ -8,10 +8,12 @@ import {
 } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
+import { InstallBanner } from "./components/InstallBanner";
 import { Layout } from "./components/Layout";
 import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { AdminPage } from "./pages/AdminPage";
 import { HomePage } from "./pages/HomePage";
+import { NurseDashboardPage } from "./pages/NurseDashboardPage";
 import { NurseProfilePage } from "./pages/NurseProfilePage";
 import { NurseRegisterPage } from "./pages/NurseRegisterPage";
 import { NursesPage } from "./pages/NursesPage";
@@ -64,6 +66,12 @@ const registerRoute = createRoute({
   component: NurseRegisterPage,
 });
 
+const nurseDashboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/nurse-dashboard",
+  component: NurseDashboardPage,
+});
+
 const routeTree = rootRoute.addChildren([
   homeRoute,
   nursesRoute,
@@ -71,6 +79,7 @@ const routeTree = rootRoute.addChildren([
   adminRoute,
   adminHiddenRoute,
   registerRoute,
+  nurseDashboardRoute,
 ]);
 
 const router = createRouter({ routeTree });
@@ -93,7 +102,7 @@ function SplashScreen() {
       >
         <motion.img
           src="/assets/generated/rural-nurse-care-logo-transparent.dim_400x400.png"
-          alt="Rural Nurse Care Logo"
+          alt="Home Care Nurse Logo"
           className="w-32 h-32 object-contain drop-shadow-lg"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -103,7 +112,7 @@ function SplashScreen() {
           className="text-3xl font-bold mt-2"
           style={{ color: "#0056b3", fontFamily: "Inter, sans-serif" }}
         >
-          Welcome to Rural Nurse Care
+          Welcome to Home Care Nurse
         </h1>
         <div className="mt-4 flex gap-1.5">
           {[0, 1, 2].map((i) => (
@@ -138,6 +147,7 @@ export default function App() {
         {showSplash && <SplashScreen key="splash" />}
       </AnimatePresence>
       {!showSplash && <RouterProvider router={router} />}
+      <InstallBanner />
     </>
   );
 }

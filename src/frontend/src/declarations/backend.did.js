@@ -34,6 +34,15 @@ export const Nurse = IDL.Record({
   'phone' : IDL.Text,
   'pincode' : IDL.Nat,
 });
+export const Time = IDL.Int;
+export const ServiceProof = IDL.Record({
+  'id' : IDL.Text,
+  'photoUrls' : IDL.Vec(ExternalBlob),
+  'createdAt' : Time,
+  'description' : IDL.Text,
+  'nurseId' : IDL.Text,
+  'videoUrl' : IDL.Opt(ExternalBlob),
+});
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
@@ -44,7 +53,6 @@ export const UserProfile = IDL.Record({
   'email' : IDL.Opt(IDL.Text),
   'phone' : IDL.Opt(IDL.Text),
 });
-export const Time = IDL.Int;
 export const Feedback = IDL.Record({
   'id' : IDL.Text,
   'createdAt' : Time,
@@ -84,9 +92,16 @@ export const idlService = IDL.Service({
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addNurse' : IDL.Func([Nurse], [], []),
+  'addServiceProof' : IDL.Func([ServiceProof], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'deleteNurse' : IDL.Func([IDL.Text], [], []),
+  'deleteServiceProof' : IDL.Func([IDL.Text], [], []),
   'filterByPincode' : IDL.Func([IDL.Nat], [IDL.Vec(Nurse)], ['query']),
+  'findNurseByCredentials' : IDL.Func(
+      [IDL.Text, IDL.Text],
+      [IDL.Opt(Nurse)],
+      ['query'],
+    ),
   'getAggregateRating' : IDL.Func(
       [IDL.Text],
       [IDL.Opt(IDL.Float64)],
@@ -96,6 +111,11 @@ export const idlService = IDL.Service({
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getNurse' : IDL.Func([IDL.Text], [IDL.Opt(Nurse)], ['query']),
   'getNurseFeedback' : IDL.Func([IDL.Text], [IDL.Vec(Feedback)], ['query']),
+  'getNurseServiceProofs' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(ServiceProof)],
+      ['query'],
+    ),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -103,6 +123,7 @@ export const idlService = IDL.Service({
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'listAllNurses' : IDL.Func([], [IDL.Vec(Nurse)], ['query']),
+  'listAllServiceProofs' : IDL.Func([], [IDL.Vec(ServiceProof)], ['query']),
   'registerNurse' : IDL.Func([Nurse], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'submitFeedback' : IDL.Func([Feedback], [], []),
@@ -138,6 +159,15 @@ export const idlFactory = ({ IDL }) => {
     'phone' : IDL.Text,
     'pincode' : IDL.Nat,
   });
+  const Time = IDL.Int;
+  const ServiceProof = IDL.Record({
+    'id' : IDL.Text,
+    'photoUrls' : IDL.Vec(ExternalBlob),
+    'createdAt' : Time,
+    'description' : IDL.Text,
+    'nurseId' : IDL.Text,
+    'videoUrl' : IDL.Opt(ExternalBlob),
+  });
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
@@ -148,7 +178,6 @@ export const idlFactory = ({ IDL }) => {
     'email' : IDL.Opt(IDL.Text),
     'phone' : IDL.Opt(IDL.Text),
   });
-  const Time = IDL.Int;
   const Feedback = IDL.Record({
     'id' : IDL.Text,
     'createdAt' : Time,
@@ -188,9 +217,16 @@ export const idlFactory = ({ IDL }) => {
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'addNurse' : IDL.Func([Nurse], [], []),
+    'addServiceProof' : IDL.Func([ServiceProof], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'deleteNurse' : IDL.Func([IDL.Text], [], []),
+    'deleteServiceProof' : IDL.Func([IDL.Text], [], []),
     'filterByPincode' : IDL.Func([IDL.Nat], [IDL.Vec(Nurse)], ['query']),
+    'findNurseByCredentials' : IDL.Func(
+        [IDL.Text, IDL.Text],
+        [IDL.Opt(Nurse)],
+        ['query'],
+      ),
     'getAggregateRating' : IDL.Func(
         [IDL.Text],
         [IDL.Opt(IDL.Float64)],
@@ -200,6 +236,11 @@ export const idlFactory = ({ IDL }) => {
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getNurse' : IDL.Func([IDL.Text], [IDL.Opt(Nurse)], ['query']),
     'getNurseFeedback' : IDL.Func([IDL.Text], [IDL.Vec(Feedback)], ['query']),
+    'getNurseServiceProofs' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(ServiceProof)],
+        ['query'],
+      ),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
@@ -207,6 +248,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'listAllNurses' : IDL.Func([], [IDL.Vec(Nurse)], ['query']),
+    'listAllServiceProofs' : IDL.Func([], [IDL.Vec(ServiceProof)], ['query']),
     'registerNurse' : IDL.Func([Nurse], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'submitFeedback' : IDL.Func([Feedback], [], []),

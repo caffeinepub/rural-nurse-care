@@ -13,13 +13,16 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import {
   ArrowLeft,
   Clock,
+  ImageIcon,
   MapPin,
   MessageSquarePlus,
   Phone,
   Star,
+  Video,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
+import type { ServiceProof } from "../backend";
 import { FeedbackCard, SampleFeedbackCard } from "../components/FeedbackCard";
 import { FeedbackForm } from "../components/FeedbackForm";
 import { StarRating } from "../components/StarRating";
@@ -28,7 +31,126 @@ import {
   useGetAggregateRating,
   useGetNurse,
   useGetNurseFeedback,
+  useGetNurseServiceProofs,
 } from "../hooks/useQueries";
+
+function ServiceProofGallery({ nurseId }: { nurseId: string }) {
+  const { data: proofs, isLoading } = useGetNurseServiceProofs(nurseId);
+
+  if (isLoading) {
+    return (
+      <div
+        className="grid grid-cols-2 md:grid-cols-3 gap-3"
+        data-ocid="service_proof.loading_state"
+      >
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-40 w-full rounded-xl" />
+        ))}
+      </div>
+    );
+  }
+
+  if (!proofs || proofs.length === 0) {
+    return (
+      <div
+        className="text-center py-10 bg-muted/40 rounded-xl"
+        data-ocid="service_proof.empty_state"
+      >
+        <ImageIcon size={28} className="mx-auto text-muted-foreground mb-2" />
+        <p className="text-muted-foreground text-sm">
+          No service proofs uploaded yet.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {proofs.map((proof: ServiceProof, pi) => {
+        const photos = proof.photoUrls
+          .map((b) => {
+            try {
+              return b.getDirectURL();
+            } catch {
+              return null;
+            }
+          })
+          .filter(Boolean) as string[];
+
+        let videoUrl: string | null = null;
+        if (proof.videoUrl) {
+          try {
+            videoUrl = proof.videoUrl.getDirectURL();
+          } catch {
+            videoUrl = null;
+          }
+        }
+
+        const date = new Date(
+          Number(proof.createdAt) / 1_000_000,
+        ).toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        });
+
+        return (
+          <motion.div
+            key={proof.id}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: pi * 0.07 }}
+            className="bg-muted/30 rounded-2xl p-4 border border-border"
+            data-ocid={`service_proof.item.${pi + 1}`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-muted-foreground">{date}</span>
+              <Badge
+                variant="outline"
+                className="text-xs text-primary border-primary/40"
+              >
+                Verified Service
+              </Badge>
+            </div>
+            {proof.description && (
+              <p className="text-sm text-foreground mb-3 leading-relaxed">
+                {proof.description}
+              </p>
+            )}
+            {photos.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
+                {photos.map((url, i) => (
+                  <img
+                    key={url}
+                    src={url}
+                    alt={`Service evidence ${pi + 1} item ${i + 1}`}
+                    className="w-full h-36 object-cover rounded-xl border border-border"
+                  />
+                ))}
+              </div>
+            )}
+            {videoUrl && (
+              <div className="mt-2">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1.5">
+                  <Video size={12} />
+                  <span>Service Video</span>
+                </div>
+                <video
+                  src={videoUrl}
+                  controls
+                  preload="metadata"
+                  className="w-full rounded-xl border border-border max-h-64"
+                >
+                  <track kind="captions" />
+                </video>
+              </div>
+            )}
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
 
 export function NurseProfilePage() {
   const { id } = useParams({ strict: false }) as { id: string };
@@ -162,6 +284,25 @@ export function NurseProfilePage() {
               {SAMPLE_FEEDBACK.slice(0, 3).map((fb, i) => (
                 <SampleFeedbackCard key={fb.id} {...fb} index={i + 1} />
               ))}
+            </div>
+          </div>
+
+          {/* Service Proof Gallery — sample nurse (empty for sample) */}
+          <div className="mt-12">
+            <h2 className="text-xl font-bold text-foreground mb-4">
+              Service Proof Gallery
+            </h2>
+            <div
+              className="text-center py-10 bg-muted/40 rounded-xl"
+              data-ocid="service_proof.empty_state"
+            >
+              <ImageIcon
+                size={28}
+                className="mx-auto text-muted-foreground mb-2"
+              />
+              <p className="text-muted-foreground text-sm">
+                No service proofs uploaded yet.
+              </p>
             </div>
           </div>
         </motion.div>
@@ -352,6 +493,14 @@ export function NurseProfilePage() {
               </Button>
             </div>
           )}
+        </div>
+
+        {/* Service Proof Gallery */}
+        <div className="mt-12">
+          <h2 className="text-xl font-bold text-foreground mb-4">
+            Service Proof Gallery
+          </h2>
+          <ServiceProofGallery nurseId={nurse.id} />
         </div>
       </motion.div>
     </div>

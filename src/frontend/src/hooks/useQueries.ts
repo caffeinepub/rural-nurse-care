@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Feedback, Nurse } from "../backend";
+import type { Feedback, Nurse, ServiceProof } from "../backend";
 import { useActor } from "./useActor";
 
 export function useListAllNurses() {
@@ -145,5 +145,98 @@ export function useRegisterNurse() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["nurses"] });
     },
+  });
+}
+
+export function useFindNurseByCredentials() {
+  const { actor } = useActor();
+  return useMutation({
+    mutationFn: async ({
+      registrationNumber,
+      phone,
+    }: {
+      registrationNumber: string;
+      phone: string;
+    }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.findNurseByCredentials(registrationNumber, phone);
+    },
+  });
+}
+
+export function useAddServiceProof() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (proof: ServiceProof) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.addServiceProof(proof);
+    },
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({
+        queryKey: ["serviceProofs", variables.nurseId],
+      });
+      qc.invalidateQueries({ queryKey: ["allServiceProofs"] });
+    },
+  });
+}
+
+export function useGetNurseServiceProofs(nurseId: string) {
+  const { actor } = useActor();
+  return useQuery<ServiceProof[]>({
+    queryKey: ["serviceProofs", nurseId],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getNurseServiceProofs(nurseId);
+    },
+    enabled: !!actor && !!nurseId,
+  });
+}
+
+/**
+ * Simulates updating a service proof by deleting the old one and adding a
+ * new one with the same data (minus removed media). The backend does not
+ * expose an updateServiceProof method, so this is a delete + re-add.
+ */
+export function useUpdateServiceProof() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (proof: ServiceProof) => {
+      if (!actor) throw new Error("Not connected");
+      await actor.deleteServiceProof(proof.id);
+      await actor.addServiceProof(proof);
+    },
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["serviceProofs", variables.nurseId] });
+      qc.invalidateQueries({ queryKey: ["allServiceProofs"] });
+    },
+  });
+}
+
+export function useDeleteServiceProof() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (proofId: string) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.deleteServiceProof(proofId);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["serviceProofs"] });
+      qc.invalidateQueries({ queryKey: ["allServiceProofs"] });
+    },
+  });
+}
+
+export function useListAllServiceProofs() {
+  const { actor } = useActor();
+  return useQuery<ServiceProof[]>({
+    queryKey: ["allServiceProofs"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.listAllServiceProofs();
+    },
+    enabled: !!actor,
   });
 }

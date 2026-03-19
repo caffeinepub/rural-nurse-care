@@ -24,6 +24,14 @@ export interface Feedback {
     mediaUrls: Array<ExternalBlob>;
     rating: bigint;
 }
+export interface ServiceProof {
+    id: string;
+    photoUrls: Array<ExternalBlob>;
+    createdAt: Time;
+    description: string;
+    nurseId: string;
+    videoUrl?: ExternalBlob;
+}
 export interface Nurse {
     id: string;
     bio: string;
@@ -50,19 +58,25 @@ export enum UserRole {
 }
 export interface backendInterface {
     addNurse(nurse: Nurse): Promise<void>;
+    addServiceProof(proof: ServiceProof): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     deleteNurse(nurseId: string): Promise<void>;
+    deleteServiceProof(proofId: string): Promise<void>;
     filterByPincode(pincode: bigint): Promise<Array<Nurse>>;
+    findNurseByCredentials(registrationNumber: string, phone: string): Promise<Nurse | null>;
     getAggregateRating(nurseId: string): Promise<number | null>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getNurse(id: string): Promise<Nurse | null>;
     getNurseFeedback(nurseId: string): Promise<Array<Feedback>>;
+    getNurseServiceProofs(nurseId: string): Promise<Array<ServiceProof>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     listAllNurses(): Promise<Array<Nurse>>;
+    listAllServiceProofs(): Promise<Array<ServiceProof>>;
     registerNurse(nurse: Nurse): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     submitFeedback(feedback: Feedback): Promise<void>;
     updateNurse(nurse: Nurse): Promise<void>;
+    updateServiceProof(proof: ServiceProof): Promise<void>;
 }

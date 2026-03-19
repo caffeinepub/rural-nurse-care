@@ -34,6 +34,14 @@ export interface Nurse {
   'phone' : string,
   'pincode' : bigint,
 }
+export interface ServiceProof {
+  'id' : string,
+  'photoUrls' : Array<ExternalBlob>,
+  'createdAt' : Time,
+  'description' : string,
+  'nurseId' : string,
+  'videoUrl' : [] | [ExternalBlob],
+}
 export type Time = bigint;
 export interface UserProfile {
   'name' : string,
@@ -72,17 +80,22 @@ export interface _SERVICE {
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addNurse' : ActorMethod<[Nurse], undefined>,
+  'addServiceProof' : ActorMethod<[ServiceProof], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'deleteNurse' : ActorMethod<[string], undefined>,
+  'deleteServiceProof' : ActorMethod<[string], undefined>,
   'filterByPincode' : ActorMethod<[bigint], Array<Nurse>>,
+  'findNurseByCredentials' : ActorMethod<[string, string], [] | [Nurse]>,
   'getAggregateRating' : ActorMethod<[string], [] | [number]>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getNurse' : ActorMethod<[string], [] | [Nurse]>,
   'getNurseFeedback' : ActorMethod<[string], Array<Feedback>>,
+  'getNurseServiceProofs' : ActorMethod<[string], Array<ServiceProof>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'listAllNurses' : ActorMethod<[], Array<Nurse>>,
+  'listAllServiceProofs' : ActorMethod<[], Array<ServiceProof>>,
   'registerNurse' : ActorMethod<[Nurse], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'submitFeedback' : ActorMethod<[Feedback], undefined>,

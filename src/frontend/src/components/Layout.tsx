@@ -9,11 +9,11 @@ function Logo() {
     <Link to="/" className="flex items-center gap-2" data-ocid="nav.link">
       <img
         src="/assets/generated/rural-nurse-care-logo-transparent.dim_400x400.png"
-        alt="Rural Nurse Care Logo"
+        alt="Home Care Nurse Logo"
         className="h-10 w-10 object-contain"
       />
       <span className="font-bold text-lg text-foreground">
-        <span className="text-primary">Rural</span>Nurse Care
+        <span className="text-primary">Home</span>Care Nurse
       </span>
     </Link>
   );
@@ -23,6 +23,7 @@ const NAV_LINKS = [
   { label: "Home", to: "/" },
   { label: "Find a Nurse", to: "/nurses" },
   { label: "Register as Nurse", to: "/register" },
+  { label: "Nurse Dashboard", to: "/nurse-dashboard" },
   { label: "How It Works", to: "/#how-it-works" },
   { label: "Admin", to: "/admin" },
 ];
@@ -135,15 +136,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <div className="flex items-center gap-3 mb-3">
                 <img
                   src="/assets/generated/rural-nurse-care-logo-transparent.dim_400x400.png"
-                  alt="Rural Nurse Care Logo"
+                  alt="Home Care Nurse Logo"
                   className="h-12 w-12 object-contain"
                 />
                 <span className="font-bold text-lg text-foreground">
-                  <span className="text-primary">Rural</span>Nurse Care
+                  <span className="text-primary">Home</span>Care Nurse
                 </span>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Connecting rural patients with trusted local nurses. Quality
+                Connecting home care patients with trusted local nurses. Quality
                 care, just a call away.
               </p>
             </div>
@@ -156,6 +157,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   { label: "Home", to: "/" },
                   { label: "Find a Nurse", to: "/nurses" },
                   { label: "Register as Nurse", to: "/register" },
+                  { label: "Nurse Dashboard", to: "/nurse-dashboard" },
                   { label: "How It Works", to: "/#how-it-works" },
                   { label: "Admin Panel", to: "/admin" },
                 ].map((l) => (
@@ -197,8 +199,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <p className="text-sm text-foreground leading-relaxed">
               This platform is an independent information service connecting
               patients with nursing professionals.{" "}
-              <strong>Rural Nurse Care/Unique Yuva</strong> does not employ
-              these nurses, nor do we verify their daily clinical conduct.
+              <strong>Home Care Nurse/Unique Yuva</strong> does not employ these
+              nurses, nor do we verify their daily clinical conduct.
             </p>
             <p className="text-sm text-foreground leading-relaxed">
               <strong>Financial Responsibility:</strong> All financial
@@ -213,6 +215,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <span className="font-bold text-destructive">108</span> or visit
               the nearest Government PHC/Hospital. Use of this app is at your
               own risk.
+            </p>
+            <p className="text-sm text-foreground leading-relaxed">
+              <strong>Prescription Required:</strong> All treatments or services
+              will be provided only with a valid prescription from a Qualified
+              Doctor.
             </p>
             <hr className="border-warning/30" />
             <p className="text-xs text-muted-foreground leading-relaxed">
@@ -230,6 +237,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <span className="font-bold text-destructive">108</span> కి కాల్ చేయండి
               లేదా దగ్గరలోని ప్రభుత్వ ఆసుపత్రిని సంప్రదించండి. నర్సులు అందించే చికిత్సకు లేదా వారి
               ప్రవర్తనకు ఈ యాప్ యాజమాన్యం బాధ్యత వహించదు.
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              <strong className="text-foreground">డాక్టర్ ప్రిస్క్రిప్షన్ అవసరం:</strong>{" "}
+              అర్హత కలిగిన వైద్యుని ప్రిస్క్రిప్షన్ ఆధారంగా మాత్రమే చికిత్స లేదా సేవలు అందించబడతాయి.
             </p>
           </div>
 

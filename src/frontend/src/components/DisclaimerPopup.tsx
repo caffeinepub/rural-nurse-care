@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "disclaimer_accepted_v2";
+const STORAGE_KEY = "disclaimer_accepted_v3";
 
 export function DisclaimerPopup() {
   const [visible, setVisible] = useState(false);
@@ -40,8 +40,8 @@ export function DisclaimerPopup() {
             <p className="text-sm text-foreground leading-relaxed">
               This platform is an independent information service connecting
               patients with nursing professionals.{" "}
-              <strong>Rural Nurse Care/Unique Yuva</strong> does not employ
-              these nurses, nor do we verify their daily clinical conduct.
+              <strong>Home Care Nurse/Unique Yuva</strong> does not employ these
+              nurses, nor do we verify their daily clinical conduct.
             </p>
             <p className="text-sm text-foreground leading-relaxed">
               <strong>Financial Responsibility:</strong> All financial
@@ -58,6 +58,11 @@ export function DisclaimerPopup() {
               </span>{" "}
               or visit the nearest Government PHC/Hospital. Use of this app is
               at your own risk.
+            </p>
+            <p className="text-sm text-foreground leading-relaxed">
+              <strong>Prescription Required:</strong> All treatments or services
+              will be provided only with a valid prescription from a Qualified
+              Doctor.
             </p>
           </div>
 
@@ -78,6 +83,10 @@ export function DisclaimerPopup() {
               <span className="font-bold text-destructive">108</span> కి కాల్ చేయండి
               లేదా దగ్గరలోని ప్రభుత్వ ఆసుపత్రిని సంప్రదించండి. నర్సులు అందించే చికిత్సకు లేదా వారి
               ప్రవర్తనకు ఈ యాప్ యాజమాన్యం బాధ్యత వహించదు.
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              <strong className="text-foreground">డాక్టర్ ప్రిస్క్రిప్షన్ అవసరం:</strong>{" "}
+              అర్హత కలిగిన వైద్యుని ప్రిస్క్రిప్షన్ ఆధారంగా మాత్రమే చికిత్స లేదా సేవలు అందించబడతాయి.
             </p>
           </div>
         </div>

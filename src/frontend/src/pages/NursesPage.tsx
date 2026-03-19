@@ -45,7 +45,7 @@ export function NursesPage() {
           Find a Nurse
         </h1>
         <p className="mt-1 text-muted-foreground">
-          Browse our network of verified rural nurses
+          Browse our network of verified home care nurses
         </p>
       </div>
 

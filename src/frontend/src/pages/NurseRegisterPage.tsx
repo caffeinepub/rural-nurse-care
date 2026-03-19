@@ -5,7 +5,6 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, CrossIcon, Loader2, Upload } from "lucide-react";
 import { useState } from "react";
-import { ExternalBlob } from "../backend";
 import { useRegisterNurse } from "../hooks/useQueries";
 import { v4 as uuidv4 } from "../utils/uuid";
 
@@ -40,6 +39,7 @@ const EMPTY: FormState = {
 export function NurseRegisterPage() {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [success, setSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const registerNurse = useRegisterNurse();
 
   const set = (key: keyof FormState, value: string | boolean | File | null) =>
@@ -47,12 +47,8 @@ export function NurseRegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     try {
-      let profilePhoto: ExternalBlob | undefined = undefined;
-      if (form.photoFile) {
-        const bytes = new Uint8Array(await form.photoFile.arrayBuffer());
-        profilePhoto = ExternalBlob.fromBytes(bytes);
-      }
       await registerNurse.mutateAsync({
         id: uuidv4(),
         name: form.name,
@@ -65,12 +61,15 @@ export function NurseRegisterPage() {
         experience: BigInt(form.experience || "0"),
         bio: form.bio,
         isAvailable: form.isAvailable,
-        profilePhoto,
       });
       setSuccess(true);
       setForm(EMPTY);
-    } catch {
-      // error handled by mutation
+    } catch (err) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Registration failed. Please try again.";
+      setSubmitError(msg);
     }
   };
 
@@ -105,7 +104,7 @@ export function NurseRegisterPage() {
               </p>
               <p className="text-sm text-muted-foreground mt-0.5">
                 Your profile will be reviewed and published shortly. Thank you
-                for joining Rural Nurse Care.
+                for joining Home Care Nurse.
               </p>
             </div>
           </div>
@@ -158,13 +157,10 @@ export function NurseRegisterPage() {
               </p>
             </div>
 
-            {/* Phone Number (optional) */}
+            {/* Phone Number (required) */}
             <div>
               <Label htmlFor="reg-phone" className="text-sm font-medium">
-                Phone Number{" "}
-                <span className="text-muted-foreground text-xs">
-                  (optional)
-                </span>
+                Phone Number <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="reg-phone"
@@ -172,6 +168,7 @@ export function NurseRegisterPage() {
                 onChange={(e) => set("phone", e.target.value)}
                 placeholder="+91 XXXXX XXXXX"
                 inputMode="tel"
+                required
                 className="mt-1.5 h-12"
                 data-ocid="register.input"
               />
@@ -350,12 +347,12 @@ export function NurseRegisterPage() {
             </div>
 
             {/* Error */}
-            {registerNurse.isError && (
+            {(submitError || registerNurse.isError) && (
               <div
                 className="text-sm text-destructive bg-destructive/10 rounded-lg px-4 py-3"
                 data-ocid="register.error_state"
               >
-                Registration failed. Please try again.
+                {submitError || "Registration failed. Please try again."}
               </div>
             )}
 

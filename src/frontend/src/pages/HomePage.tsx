@@ -38,15 +38,15 @@ const ACTION_BUTTONS = [
   {
     id: "about",
     emoji: "🏥",
-    title: "About Rural Care",
+    title: "About Home Care",
     description: "Learn about our mission.",
     type: "expand" as const,
     ocid: "home.about_button",
     expandContent: (
       <div className="text-sm text-gray-600 leading-relaxed">
         <p>
-          Rural Nurse Care connects certified, local nurses with patients in
-          rural Andhra Pradesh. Our mission is to make quality home nursing care
+          Home Care Nurse connects certified, local nurses with patients in
+          Andhra Pradesh. Our mission is to make quality home nursing care
           affordable, accessible, and trustworthy — especially for elderly
           patients and families in areas with limited hospital access.
         </p>
@@ -122,7 +122,7 @@ export function HomePage() {
             className="max-w-xl"
           >
             <span className="inline-block px-3 py-1 rounded-full bg-white/20 text-white text-xs font-semibold mb-4 border border-white/30">
-              Trusted Rural Healthcare Network
+              Trusted Home Healthcare Network
             </span>
             <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight">
               Connecting Patients with{" "}
@@ -204,7 +204,7 @@ export function HomePage() {
             What Would You Like to Do?
           </h2>
           <p className="mt-2 text-gray-500">
-            Quick access to everything Rural Nurse Care offers
+            Quick access to everything Home Care Nurse offers
           </p>
         </motion.div>
 
