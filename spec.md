@@ -1,32 +1,32 @@
 # Home Care Nurse
 
 ## Current State
-Admin dashboard at `/admin-hidden-access` allows:
-- View all registered nurses
-- Delete a nurse profile
-- View and delete entire service proof entries
+Full-stack app with React frontend and Motoko backend. The app is in English only except for the disclaimer popup which already shows both English and Telugu. Pages include: HomePage, NursesPage, NurseRegisterPage, NurseProfilePage, NurseDashboardPage, AdminDashboardPage.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Edit button per nurse in admin dashboard that opens an inline edit form
-- Individual delete buttons for each photo and video within a service proof (in addition to deleting the whole proof)
-- Backend `updateServiceProof` method to update a proof with modified media arrays
-- Backend `useUpdateServiceProof` hook
+- A `LanguageContext` (React context) in `src/frontend/src/contexts/LanguageContext.tsx` providing `lang` ('en' | 'te') and `setLang` toggle.
+- A `translations.ts` file with all UI strings in both English and Telugu for: Layout/nav, HomePage buttons & headings, NursesPage labels & filters, NurseRegisterPage form fields & labels, NurseProfilePage labels, NurseDashboardPage labels, FeedbackForm labels, NurseCard labels.
+- A language toggle button (EN / తె) in the top navigation bar (Layout.tsx) that persists selection in localStorage.
 
 ### Modify
-- `updateNurse` backend: remove admin permission check so it can be called from the password-protected admin UI without requiring on-chain login
-- `AdminDashboardPage.tsx`: add edit nurse modal/inline form with all editable fields (name, phone, registration number, village, mandal, district, pincode, experience, bio, isAvailable)
-- `NurseServiceProofs` component: add per-photo and per-video delete buttons that call `updateServiceProof` with the media removed
+- `Layout.tsx` -- wrap app in LanguageProvider, add EN/తె toggle button in header.
+- `HomePage.tsx` -- use translated strings for all button labels, headings, and descriptions.
+- `NursesPage.tsx` -- translate search labels, tab names (Pincode/Nearby), filter UI, nurse card distance label, no-results text.
+- `NurseRegisterPage.tsx` -- translate all form field labels, placeholders, button text, success/error messages.
+- `NurseProfilePage.tsx` -- translate section headings, call button, feedback section labels.
+- `NurseDashboardPage.tsx` -- translate form labels, upload section, success messages.
+- `FeedbackForm.tsx` -- translate form labels and submit button.
+- `NurseCard.tsx` -- translate Call Now button and badge text.
+- `App.tsx` -- translate splash screen text.
 
 ### Remove
-Nothing removed.
+- Nothing removed.
 
 ## Implementation Plan
-1. Edit `main.mo`: make `updateNurse` public, add `updateServiceProof(proof: ServiceProof)` method
-2. Edit `backend.d.ts`: add `updateServiceProof` to interface
-3. Edit `useQueries.ts`: add `useUpdateServiceProof` mutation hook
-4. Edit `AdminDashboardPage.tsx`:
-   - Add edit state per nurse, inline edit form with all fields
-   - Individual photo delete in NurseServiceProofs (filter out photo by index, call updateServiceProof)
-   - Individual video delete in NurseServiceProofs (set videoUrl to undefined, call updateServiceProof)
+1. Create `LanguageContext.tsx` with EN/TE toggle, localStorage persistence.
+2. Create `translations.ts` with all strings.
+3. Update `Layout.tsx` to wrap with LanguageProvider and add toggle in header.
+4. Update all pages and components to use `useLanguage()` hook and translated strings.
+5. Validate build.

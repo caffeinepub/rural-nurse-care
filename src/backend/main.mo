@@ -40,6 +40,8 @@ actor {
     bio : Text;
     profilePhoto : ?Storage.ExternalBlob;
     isAvailable : Bool;
+    latitude : ?Float;
+    longitude : ?Float;
   };
 
   public type Feedback = {
@@ -110,7 +112,7 @@ actor {
     nurses.add(nurse.id, nurse);
   };
 
-  // Public registration - no login required
+  // Public registration - no login required (guests can register)
   public shared func registerNurse(nurse : Nurse) : async () {
     validateNurse(nurse);
     if (nurses.containsKey(nurse.id)) {
@@ -119,8 +121,11 @@ actor {
     nurses.add(nurse.id, nurse);
   };
 
-  // Public update - password protection handled client-side in admin dashboard
-  public shared func updateNurse(nurse : Nurse) : async () {
+  // Admin-only update
+  public shared ({ caller }) func updateNurse(nurse : Nurse) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update nurses");
+    };
     validateNurse(nurse);
     switch (nurses.get(nurse.id)) {
       case (null) { Runtime.trap("Nurse does not exist") };
@@ -128,8 +133,11 @@ actor {
     };
   };
 
-  // Public delete - password protection handled client-side in admin dashboard
-  public shared func deleteNurse(nurseId : Text) : async () {
+  // Admin-only delete
+  public shared ({ caller }) func deleteNurse(nurseId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can delete nurses");
+    };
     nurses.remove(nurseId);
   };
 
@@ -189,7 +197,7 @@ actor {
 
   // Service Proof Logic
 
-  // Public - no login required
+  // Public - no login required (guests can add service proofs)
   public shared func addServiceProof(proof : ServiceProof) : async () {
     if (serviceProofs.containsKey(proof.id)) {
       Runtime.trap("Service proof already exists with this ID");
@@ -197,16 +205,22 @@ actor {
     serviceProofs.add(proof.id, proof);
   };
 
-  // Public update - password protection handled client-side in admin dashboard
-  public shared func updateServiceProof(proof : ServiceProof) : async () {
+  // Admin-only update
+  public shared ({ caller }) func updateServiceProof(proof : ServiceProof) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update service proofs");
+    };
     switch (serviceProofs.get(proof.id)) {
       case (null) { Runtime.trap("Service proof does not exist") };
       case (?_) { serviceProofs.add(proof.id, proof) };
     };
   };
 
-  // Public delete - password protection handled client-side in admin dashboard
-  public shared func deleteServiceProof(proofId : Text) : async () {
+  // Admin-only delete
+  public shared ({ caller }) func deleteServiceProof(proofId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can delete service proofs");
+    };
     serviceProofs.remove(proofId);
   };
 

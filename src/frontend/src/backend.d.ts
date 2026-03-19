@@ -35,12 +35,14 @@ export interface ServiceProof {
 export interface Nurse {
     id: string;
     bio: string;
+    latitude?: number;
     name: string;
     profilePhoto?: ExternalBlob;
     isAvailable: boolean;
     registrationNumber: string;
     district: string;
     experience: bigint;
+    longitude?: number;
     village: string;
     mandal: string;
     phone: string;

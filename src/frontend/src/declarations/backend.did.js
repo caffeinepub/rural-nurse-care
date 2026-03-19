@@ -23,12 +23,14 @@ export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const Nurse = IDL.Record({
   'id' : IDL.Text,
   'bio' : IDL.Text,
+  'latitude' : IDL.Opt(IDL.Float64),
   'name' : IDL.Text,
   'profilePhoto' : IDL.Opt(ExternalBlob),
   'isAvailable' : IDL.Bool,
   'registrationNumber' : IDL.Text,
   'district' : IDL.Text,
   'experience' : IDL.Nat,
+  'longitude' : IDL.Opt(IDL.Float64),
   'village' : IDL.Text,
   'mandal' : IDL.Text,
   'phone' : IDL.Text,
@@ -128,6 +130,7 @@ export const idlService = IDL.Service({
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'submitFeedback' : IDL.Func([Feedback], [], []),
   'updateNurse' : IDL.Func([Nurse], [], []),
+  'updateServiceProof' : IDL.Func([ServiceProof], [], []),
 });
 
 export const idlInitArgs = [];
@@ -148,12 +151,14 @@ export const idlFactory = ({ IDL }) => {
   const Nurse = IDL.Record({
     'id' : IDL.Text,
     'bio' : IDL.Text,
+    'latitude' : IDL.Opt(IDL.Float64),
     'name' : IDL.Text,
     'profilePhoto' : IDL.Opt(ExternalBlob),
     'isAvailable' : IDL.Bool,
     'registrationNumber' : IDL.Text,
     'district' : IDL.Text,
     'experience' : IDL.Nat,
+    'longitude' : IDL.Opt(IDL.Float64),
     'village' : IDL.Text,
     'mandal' : IDL.Text,
     'phone' : IDL.Text,
@@ -253,6 +258,7 @@ export const idlFactory = ({ IDL }) => {
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'submitFeedback' : IDL.Func([Feedback], [], []),
     'updateNurse' : IDL.Func([Nurse], [], []),
+    'updateServiceProof' : IDL.Func([ServiceProof], [], []),
   });
 };
 

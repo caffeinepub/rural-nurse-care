@@ -19,6 +19,7 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { ExternalBlob } from "../backend";
 import type { Nurse, ServiceProof } from "../backend";
+import { useLanguage } from "../contexts/LanguageContext";
 import {
   useAddServiceProof,
   useFindNurseByCredentials,
@@ -103,6 +104,7 @@ function ServiceProofCard({
 }
 
 export function NurseDashboardPage() {
+  const { t } = useLanguage();
   const [regNum, setRegNum] = useState("");
   const [phone, setPhone] = useState("");
   const [nurse, setNurse] = useState<Nurse | null>(null);
@@ -155,7 +157,6 @@ export function NurseDashboardPage() {
       toast.error("You can only upload up to 2 photos.");
       return;
     }
-    // Validate size
     const oversized = toAdd.filter((f) => f.size > 5 * 1024 * 1024);
     if (oversized.length > 0) {
       toast.error("Each photo must be under 5MB.");
@@ -164,7 +165,6 @@ export function NurseDashboardPage() {
     const newPreviews = toAdd.map((f) => URL.createObjectURL(f));
     setPhotos((prev) => [...prev, ...toAdd]);
     setPhotoPreviewUrls((prev) => [...prev, ...newPreviews]);
-    // reset input
     e.target.value = "";
   }
 
@@ -202,7 +202,6 @@ export function NurseDashboardPage() {
     }
 
     try {
-      // Upload photos
       const photoBlobs = await Promise.all(
         photos.map(async (f) => {
           const bytes = new Uint8Array(await f.arrayBuffer());
@@ -210,7 +209,6 @@ export function NurseDashboardPage() {
         }),
       );
 
-      // Upload video
       let videoBlob: ExternalBlob | undefined;
       if (video) {
         const bytes = new Uint8Array(await video.arrayBuffer());
@@ -231,14 +229,12 @@ export function NurseDashboardPage() {
           setUploadSuccess(true);
           setDescription("");
           setPhotos([]);
-          for (const u of photoPreviewUrls) {
-            URL.revokeObjectURL(u);
-          }
+          for (const u of photoPreviewUrls) URL.revokeObjectURL(u);
           setPhotoPreviewUrls([]);
           if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
           setVideo(null);
           setVideoPreviewUrl(null);
-          toast.success("Service proof uploaded successfully!");
+          toast.success(t("dashboard.success"));
           setTimeout(() => setUploadSuccess(false), 4000);
         },
         onError: () => {
@@ -265,10 +261,10 @@ export function NurseDashboardPage() {
               <ShieldCheck className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-gray-800">
-              Nurse Service Dashboard
+              {t("dashboard.title")}
             </h1>
             <p className="text-sm text-gray-500 mt-1 text-center">
-              Enter your credentials to access your service proof dashboard
+              {t("dashboard.login.desc")}
             </p>
           </div>
 
@@ -278,13 +274,13 @@ export function NurseDashboardPage() {
                 htmlFor="regNum"
                 className="text-sm font-medium text-gray-700"
               >
-                Nursing Council Registration No.
+                {t("dashboard.regNo")}
               </Label>
               <Input
                 id="regNum"
                 value={regNum}
                 onChange={(e) => setRegNum(e.target.value)}
-                placeholder="e.g. AP/RN/2019/12345"
+                placeholder={t("dashboard.regNo.placeholder")}
                 className="rounded-xl border-blue-200 focus:ring-blue-500"
                 data-ocid="nurse_dashboard.input"
               />
@@ -294,14 +290,14 @@ export function NurseDashboardPage() {
                 htmlFor="phone"
                 className="text-sm font-medium text-gray-700"
               >
-                Registered Mobile Number <span className="text-red-500">*</span>
+                {t("dashboard.phone")} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="phone"
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="10-digit mobile number"
+                placeholder={t("dashboard.phone.placeholder")}
                 className="rounded-xl border-blue-200 focus:ring-blue-500"
                 data-ocid="nurse_dashboard.input"
               />
@@ -315,12 +311,12 @@ export function NurseDashboardPage() {
               {findMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Verifying...
+                  {t("dashboard.logging")}
                 </>
               ) : (
                 <>
                   <LogIn className="mr-2 h-4 w-4" />
-                  Access Dashboard
+                  {t("dashboard.loginBtn")}
                 </>
               )}
             </Button>
@@ -329,7 +325,7 @@ export function NurseDashboardPage() {
                 className="text-red-500 text-sm text-center"
                 data-ocid="nurse_dashboard.error_state"
               >
-                Nurse not found. Check your registration number and phone.
+                {t("dashboard.error")}
               </p>
             )}
           </form>
@@ -352,13 +348,13 @@ export function NurseDashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-blue-500 font-semibold uppercase tracking-wide mb-1">
-                  Nurse Service Dashboard
+                  {t("dashboard.title")}
                 </p>
                 <h1 className="text-2xl font-bold text-gray-800">
-                  Welcome, {nurse.name}
+                  {t("dashboard.welcome")}, {nurse.name}
                 </h1>
                 <p className="text-sm text-gray-500 mt-0.5">
-                  Reg: {nurse.registrationNumber}
+                  {t("profile.reg")} {nurse.registrationNumber}
                 </p>
               </div>
               <button
@@ -367,7 +363,7 @@ export function NurseDashboardPage() {
                 className="text-xs text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors"
                 data-ocid="nurse_dashboard.button"
               >
-                Logout
+                {t("dashboard.logout")}
               </button>
             </div>
           </div>
@@ -375,11 +371,10 @@ export function NurseDashboardPage() {
           {/* Upload form */}
           <div className="bg-white rounded-3xl border border-blue-100 shadow-sm p-6 mb-6">
             <h2 className="text-lg font-bold text-gray-800 mb-1">
-              Upload Service Proof
+              {t("dashboard.uploadProof")}
             </h2>
             <p className="text-sm text-gray-500 mb-5">
-              Upload evidence of your service — photos (Before/After) and/or a
-              short video (up to 1 minute).
+              {t("dashboard.subtitle")}
             </p>
 
             {uploadSuccess && (
@@ -390,21 +385,19 @@ export function NurseDashboardPage() {
                 data-ocid="nurse_dashboard.success_state"
               >
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
-                Service proof uploaded successfully!
+                {t("dashboard.success")}
               </motion.div>
             )}
 
             <form onSubmit={handleUpload} className="space-y-5">
-              {/* Description */}
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium text-gray-700">
-                  Description{" "}
-                  <span className="text-gray-400 font-normal">(optional)</span>
+                  {t("dashboard.description")}
                 </Label>
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Briefly describe the service provided..."
+                  placeholder={t("dashboard.description.placeholder")}
                   className="rounded-xl border-blue-200 resize-none"
                   rows={3}
                   data-ocid="nurse_dashboard.textarea"
@@ -414,9 +407,9 @@ export function NurseDashboardPage() {
               {/* Photos */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">
-                  Photos{" "}
-                  <span className="text-gray-400 font-normal">
-                    (up to 2 · JPG/PNG/WEBP · max 5MB each)
+                  {t("dashboard.photos")}{" "}
+                  <span className="text-gray-400 font-normal text-xs">
+                    ({t("dashboard.photos.hint")})
                   </span>
                 </Label>
                 <div className="flex flex-wrap gap-3">
@@ -464,9 +457,9 @@ export function NurseDashboardPage() {
               {/* Video */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">
-                  Video{" "}
-                  <span className="text-gray-400 font-normal">
-                    (1 video · MP4/MOV/WEBM · max 100MB · ~1 min)
+                  {t("dashboard.video")}{" "}
+                  <span className="text-gray-400 font-normal text-xs">
+                    ({t("dashboard.video.hint")})
                   </span>
                 </Label>
                 {videoPreviewUrl ? (
@@ -520,12 +513,12 @@ export function NurseDashboardPage() {
                 {addProofMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Uploading...
+                    {t("dashboard.uploading")}
                   </>
                 ) : (
                   <>
                     <Upload className="mr-2 h-4 w-4" />
-                    Upload Service Proof
+                    {t("dashboard.submit")}
                   </>
                 )}
               </Button>
@@ -535,7 +528,7 @@ export function NurseDashboardPage() {
           {/* Previous proofs */}
           <div>
             <h2 className="text-lg font-bold text-gray-800 mb-4">
-              Your Previous Service Proofs
+              {t("dashboard.proofs")}
             </h2>
             {proofsLoading ? (
               <div
@@ -563,7 +556,7 @@ export function NurseDashboardPage() {
               >
                 <Upload size={32} className="mx-auto text-blue-200 mb-2" />
                 <p className="text-gray-400 text-sm">
-                  No service proofs uploaded yet. Upload your first one above!
+                  {t("dashboard.noProofs")}
                 </p>
               </div>
             )}

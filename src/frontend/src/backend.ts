@@ -113,12 +113,14 @@ export interface ServiceProof {
 export interface Nurse {
     id: string;
     bio: string;
+    latitude?: number;
     name: string;
     profilePhoto?: ExternalBlob;
     isAvailable: boolean;
     registrationNumber: string;
     district: string;
     experience: bigint;
+    longitude?: number;
     village: string;
     mandal: string;
     phone: string;
@@ -171,6 +173,7 @@ export interface backendInterface {
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     submitFeedback(feedback: Feedback): Promise<void>;
     updateNurse(nurse: Nurse): Promise<void>;
+    updateServiceProof(proof: ServiceProof): Promise<void>;
 }
 import type { ExternalBlob as _ExternalBlob, Feedback as _Feedback, Nurse as _Nurse, ServiceProof as _ServiceProof, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -361,28 +364,28 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.findNurseByCredentials(arg0, arg1);
-                return from_candid_opt_n21(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.findNurseByCredentials(arg0, arg1);
-            return from_candid_opt_n21(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getAggregateRating(arg0: string): Promise<number | null> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getAggregateRating(arg0);
                 return from_candid_opt_n22(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getAggregateRating(arg0);
+            const result = await this.actor.findNurseByCredentials(arg0, arg1);
             return from_candid_opt_n22(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getAggregateRating(arg0: string): Promise<number | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAggregateRating(arg0);
+                return from_candid_opt_n19(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAggregateRating(arg0);
+            return from_candid_opt_n19(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserProfile(): Promise<UserProfile | null> {
@@ -417,14 +420,14 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getNurse(arg0);
-                return from_candid_opt_n21(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n22(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getNurse(arg0);
-            return from_candid_opt_n21(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n22(this._uploadFile, this._downloadFile, result);
         }
     }
     async getNurseFeedback(arg0: string): Promise<Array<Feedback>> {
@@ -567,8 +570,22 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async updateServiceProof(arg0: ServiceProof): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateServiceProof(await to_candid_ServiceProof_n11(this._uploadFile, this._downloadFile, arg0));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateServiceProof(await to_candid_ServiceProof_n11(this._uploadFile, this._downloadFile, arg0));
+            return result;
+        }
+    }
 }
-async function from_candid_ExternalBlob_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ExternalBlob): Promise<ExternalBlob> {
+async function from_candid_ExternalBlob_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ExternalBlob): Promise<ExternalBlob> {
     return await _downloadFile(value);
 }
 async function from_candid_Feedback_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Feedback): Promise<Feedback> {
@@ -589,14 +606,14 @@ function from_candid_UserRole_n27(_uploadFile: (file: ExternalBlob) => Promise<U
 function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __CaffeineStorageRefillResult): _CaffeineStorageRefillResult {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
 }
-async function from_candid_opt_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ExternalBlob]): Promise<ExternalBlob | null> {
-    return value.length === 0 ? null : await from_candid_ExternalBlob_n20(_uploadFile, _downloadFile, value[0]);
-}
-async function from_candid_opt_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Nurse]): Promise<Nurse | null> {
-    return value.length === 0 ? null : await from_candid_Nurse_n17(_uploadFile, _downloadFile, value[0]);
-}
-function from_candid_opt_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [number]): number | null {
+function from_candid_opt_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [number]): number | null {
     return value.length === 0 ? null : value[0];
+}
+async function from_candid_opt_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ExternalBlob]): Promise<ExternalBlob | null> {
+    return value.length === 0 ? null : await from_candid_ExternalBlob_n21(_uploadFile, _downloadFile, value[0]);
+}
+async function from_candid_opt_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Nurse]): Promise<Nurse | null> {
+    return value.length === 0 ? null : await from_candid_Nurse_n17(_uploadFile, _downloadFile, value[0]);
 }
 function from_candid_opt_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
     return value.length === 0 ? null : from_candid_UserProfile_n24(_uploadFile, _downloadFile, value[0]);
@@ -613,12 +630,14 @@ function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
 async function from_candid_record_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: string;
     bio: string;
+    latitude: [] | [number];
     name: string;
     profilePhoto: [] | [_ExternalBlob];
     isAvailable: boolean;
     registrationNumber: string;
     district: string;
     experience: bigint;
+    longitude: [] | [number];
     village: string;
     mandal: string;
     phone: string;
@@ -626,12 +645,14 @@ async function from_candid_record_n18(_uploadFile: (file: ExternalBlob) => Promi
 }): Promise<{
     id: string;
     bio: string;
+    latitude?: number;
     name: string;
     profilePhoto?: ExternalBlob;
     isAvailable: boolean;
     registrationNumber: string;
     district: string;
     experience: bigint;
+    longitude?: number;
     village: string;
     mandal: string;
     phone: string;
@@ -640,12 +661,14 @@ async function from_candid_record_n18(_uploadFile: (file: ExternalBlob) => Promi
     return {
         id: value.id,
         bio: value.bio,
+        latitude: record_opt_to_undefined(from_candid_opt_n19(_uploadFile, _downloadFile, value.latitude)),
         name: value.name,
-        profilePhoto: record_opt_to_undefined(await from_candid_opt_n19(_uploadFile, _downloadFile, value.profilePhoto)),
+        profilePhoto: record_opt_to_undefined(await from_candid_opt_n20(_uploadFile, _downloadFile, value.profilePhoto)),
         isAvailable: value.isAvailable,
         registrationNumber: value.registrationNumber,
         district: value.district,
         experience: value.experience,
+        longitude: record_opt_to_undefined(from_candid_opt_n19(_uploadFile, _downloadFile, value.longitude)),
         village: value.village,
         mandal: value.mandal,
         phone: value.phone,
@@ -715,7 +738,7 @@ async function from_candid_record_n35(_uploadFile: (file: ExternalBlob) => Promi
         createdAt: value.createdAt,
         description: value.description,
         nurseId: value.nurseId,
-        videoUrl: record_opt_to_undefined(await from_candid_opt_n19(_uploadFile, _downloadFile, value.videoUrl))
+        videoUrl: record_opt_to_undefined(await from_candid_opt_n20(_uploadFile, _downloadFile, value.videoUrl))
     };
 }
 function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -746,7 +769,7 @@ async function from_candid_vec_n29(_uploadFile: (file: ExternalBlob) => Promise<
     return await Promise.all(value.map(async (x)=>await from_candid_Feedback_n30(_uploadFile, _downloadFile, x)));
 }
 async function from_candid_vec_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_ExternalBlob>): Promise<Array<ExternalBlob>> {
-    return await Promise.all(value.map(async (x)=>await from_candid_ExternalBlob_n20(_uploadFile, _downloadFile, x)));
+    return await Promise.all(value.map(async (x)=>await from_candid_ExternalBlob_n21(_uploadFile, _downloadFile, x)));
 }
 async function from_candid_vec_n33(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_ServiceProof>): Promise<Array<ServiceProof>> {
     return await Promise.all(value.map(async (x)=>await from_candid_ServiceProof_n34(_uploadFile, _downloadFile, x)));
@@ -853,12 +876,14 @@ async function to_candid_record_n39(_uploadFile: (file: ExternalBlob) => Promise
 async function to_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: string;
     bio: string;
+    latitude?: number;
     name: string;
     profilePhoto?: ExternalBlob;
     isAvailable: boolean;
     registrationNumber: string;
     district: string;
     experience: bigint;
+    longitude?: number;
     village: string;
     mandal: string;
     phone: string;
@@ -866,12 +891,14 @@ async function to_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<
 }): Promise<{
     id: string;
     bio: string;
+    latitude: [] | [number];
     name: string;
     profilePhoto: [] | [_ExternalBlob];
     isAvailable: boolean;
     registrationNumber: string;
     district: string;
     experience: bigint;
+    longitude: [] | [number];
     village: string;
     mandal: string;
     phone: string;
@@ -880,12 +907,14 @@ async function to_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<
     return {
         id: value.id,
         bio: value.bio,
+        latitude: value.latitude ? candid_some(value.latitude) : candid_none(),
         name: value.name,
         profilePhoto: value.profilePhoto ? candid_some(await to_candid_ExternalBlob_n10(_uploadFile, _downloadFile, value.profilePhoto)) : candid_none(),
         isAvailable: value.isAvailable,
         registrationNumber: value.registrationNumber,
         district: value.district,
         experience: value.experience,
+        longitude: value.longitude ? candid_some(value.longitude) : candid_none(),
         village: value.village,
         mandal: value.mandal,
         phone: value.phone,

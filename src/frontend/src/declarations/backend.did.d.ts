@@ -23,12 +23,14 @@ export interface Feedback {
 export interface Nurse {
   'id' : string,
   'bio' : string,
+  'latitude' : [] | [number],
   'name' : string,
   'profilePhoto' : [] | [ExternalBlob],
   'isAvailable' : boolean,
   'registrationNumber' : string,
   'district' : string,
   'experience' : bigint,
+  'longitude' : [] | [number],
   'village' : string,
   'mandal' : string,
   'phone' : string,
@@ -100,6 +102,7 @@ export interface _SERVICE {
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'submitFeedback' : ActorMethod<[Feedback], undefined>,
   'updateNurse' : ActorMethod<[Nurse], undefined>,
+  'updateServiceProof' : ActorMethod<[ServiceProof], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];
