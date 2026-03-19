@@ -12,7 +12,10 @@ export function useListAllNurses() {
     },
     enabled: !!actor,
     staleTime: 0,
+    gcTime: 0,
     refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchInterval: 5000,
   });
 }
 
@@ -238,5 +241,56 @@ export function useListAllServiceProofs() {
       return actor.listAllServiceProofs();
     },
     enabled: !!actor,
+  });
+}
+
+export function useSetNurseAvailability() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      registrationNumber,
+      phone,
+      isAvailable,
+    }: {
+      registrationNumber: string;
+      phone: string;
+      isAvailable: boolean;
+    }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.setNurseAvailability(registrationNumber, phone, isAvailable);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["nurses"] });
+    },
+  });
+}
+
+export function useUpdateNurseLocation() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      registrationNumber,
+      phone,
+      latitude,
+      longitude,
+    }: {
+      registrationNumber: string;
+      phone: string;
+      latitude: number;
+      longitude: number;
+    }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.updateNurseLocation(
+        registrationNumber,
+        phone,
+        latitude,
+        longitude,
+      );
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["nurses"] });
+    },
   });
 }

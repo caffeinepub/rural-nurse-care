@@ -12,7 +12,7 @@ import {
   Trash2,
   Video,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { Nurse, ServiceProof } from "../backend";
 import {
@@ -24,15 +24,16 @@ import {
   useUpdateServiceProof,
 } from "../hooks/useQueries";
 
-const ADMIN_PASSWORD = "RuralCare@Admin2024";
+const ADMIN_PASSWORD = "Yuva@9849";
 
 // ── Edit Nurse Form ────────────────────────────────────────────────────────────
 interface EditNurseFormProps {
   nurse: Nurse;
   onClose: () => void;
+  onSaved: () => void;
 }
 
-function EditNurseForm({ nurse, onClose }: EditNurseFormProps) {
+function EditNurseForm({ nurse, onClose, onSaved }: EditNurseFormProps) {
   const updateMutation = useUpdateNurse();
   const [form, setForm] = useState({
     name: nurse.name,
@@ -71,6 +72,7 @@ function EditNurseForm({ nurse, onClose }: EditNurseFormProps) {
     updateMutation.mutate(updated, {
       onSuccess: () => {
         toast.success("Nurse details updated.");
+        onSaved();
         onClose();
       },
       onError: () => {
@@ -516,11 +518,13 @@ export function AdminDashboardPage() {
   const deleteMutation = useDeleteNurse();
   const qc = useQueryClient();
 
+  const didMountRef = useRef(false);
   useEffect(() => {
     if (authed) {
       qc.invalidateQueries({ queryKey: ["nurses"] });
       refetch();
     }
+    didMountRef.current = true;
   }, [authed, qc, refetch]);
 
   function login(e: React.FormEvent) {
@@ -544,6 +548,8 @@ export function AdminDashboardPage() {
       onSuccess: () => {
         toast.success("Nurse profile deleted.");
         setConfirmId(null);
+        qc.invalidateQueries({ queryKey: ["nurses"] });
+        refetch();
       },
       onError: () => {
         toast.error("Failed to delete. Please try again.");
@@ -796,6 +802,10 @@ export function AdminDashboardPage() {
                     <EditNurseForm
                       nurse={nurse}
                       onClose={() => setEditingNurseId(null)}
+                      onSaved={() => {
+                        qc.invalidateQueries({ queryKey: ["nurses"] });
+                        refetch();
+                      }}
                     />
                   )}
 

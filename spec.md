@@ -1,32 +1,28 @@
 # Home Care Nurse
 
 ## Current State
-Full-stack app with React frontend and Motoko backend. The app is in English only except for the disclaimer popup which already shows both English and Telugu. Pages include: HomePage, NursesPage, NurseRegisterPage, NurseProfilePage, NurseDashboardPage, AdminDashboardPage.
+Full-stack app with Motoko backend and React frontend. Features: nurse registration, nurse directory (pincode + GPS), nurse dashboard (availability toggle, location update, service proof upload), admin dashboard (list, edit, delete nurses, manage service proofs), bilingual (EN/TE), PWA.
+
+The last build failed. Four bugs are reported:
+1. Availability toggle (ON/OFF) not saving in nurse dashboard
+2. Location update not saving in nurse dashboard
+3. Delete nurse not working in admin
+4. Registered nurse data not showing in admin dashboard
 
 ## Requested Changes (Diff)
 
 ### Add
-- A `LanguageContext` (React context) in `src/frontend/src/contexts/LanguageContext.tsx` providing `lang` ('en' | 'te') and `setLang` toggle.
-- A `translations.ts` file with all UI strings in both English and Telugu for: Layout/nav, HomePage buttons & headings, NursesPage labels & filters, NurseRegisterPage form fields & labels, NurseProfilePage labels, NurseDashboardPage labels, FeedbackForm labels, NurseCard labels.
-- A language toggle button (EN / తె) in the top navigation bar (Layout.tsx) that persists selection in localStorage.
+- Nothing new
 
 ### Modify
-- `Layout.tsx` -- wrap app in LanguageProvider, add EN/తె toggle button in header.
-- `HomePage.tsx` -- use translated strings for all button labels, headings, and descriptions.
-- `NursesPage.tsx` -- translate search labels, tab names (Pincode/Nearby), filter UI, nurse card distance label, no-results text.
-- `NurseRegisterPage.tsx` -- translate all form field labels, placeholders, button text, success/error messages.
-- `NurseProfilePage.tsx` -- translate section headings, call button, feedback section labels.
-- `NurseDashboardPage.tsx` -- translate form labels, upload section, success messages.
-- `FeedbackForm.tsx` -- translate form labels and submit button.
-- `NurseCard.tsx` -- translate Call Now button and badge text.
-- `App.tsx` -- translate splash screen text.
+- Regenerate backend with stable nurse storage, correct mutation methods for availability toggle, location update, and delete
+- Ensure `listAllNurses` always returns current data
+- Ensure `deleteNurse`, `setNurseAvailability`, `updateNurseLocation` all work reliably
 
 ### Remove
-- Nothing removed.
+- Nothing
 
 ## Implementation Plan
-1. Create `LanguageContext.tsx` with EN/TE toggle, localStorage persistence.
-2. Create `translations.ts` with all strings.
-3. Update `Layout.tsx` to wrap with LanguageProvider and add toggle in header.
-4. Update all pages and components to use `useLanguage()` hook and translated strings.
-5. Validate build.
+1. Regenerate Motoko backend with clear, simple function requirements
+2. Verify frontend hooks are correctly calling backend methods
+3. Validate and deploy

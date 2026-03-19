@@ -222,6 +222,15 @@ export const translations: Record<string, Record<string, string>> = {
     "dashboard.proofs": "Your Service Proofs",
     "dashboard.noProofs":
       "No service proofs yet. Upload your first proof above.",
+    "dashboard.availability": "Appointment Availability",
+    "dashboard.availability.on": "Available",
+    "dashboard.availability.off": "Unavailable",
+    "dashboard.availability.toggle": "Available for Appointments",
+    "dashboard.availability.saved": "Availability updated successfully!",
+    "dashboard.availability.error":
+      "Failed to update availability. Please try again.",
+    "dashboard.availability.hint":
+      "Patients can see your availability status on your profile.",
 
     // Common
     "common.loading": "Loading...",
@@ -442,6 +451,14 @@ export const translations: Record<string, Record<string, string>> = {
     "dashboard.success": "సేవ నిరూపణ విజయవంతంగా అప్‌లోడ్ అయింది!",
     "dashboard.proofs": "మీ సేవ నిరూపణలు",
     "dashboard.noProofs": "ఇంకా సేవ నిరూపణలు లేవు. పైన మీ మొదటి నిరూపణ అప్‌లోడ్ చేయండి.",
+    "dashboard.availability": "అపాయింట్‌మెంట్ అందుబాటు",
+    "dashboard.availability.on": "అందుబాటులో",
+    "dashboard.availability.off": "అందుబాటులో లేరు",
+    "dashboard.availability.toggle": "అపాయింట్‌మెంట్‌లకు అందుబాటులో",
+    "dashboard.availability.saved": "అందుబాటు స్థితి విజయవంతంగా నవీకరించబడింది!",
+    "dashboard.availability.error":
+      "అందుబాటు నవీకరించడం విఫలమైంది. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+    "dashboard.availability.hint": "రోగులు మీ ప్రొఫైల్‌లో మీ అందుబాటు స్థితిని చూడగలరు.",
 
     // Common
     "common.loading": "లోడ్ అవుతోంది...",
