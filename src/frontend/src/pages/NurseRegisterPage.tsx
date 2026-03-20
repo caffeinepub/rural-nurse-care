@@ -58,6 +58,7 @@ export function NurseRegisterPage() {
   const { t } = useLanguage();
   const [form, setForm] = useState<FormState>(EMPTY);
   const [success, setSuccess] = useState(false);
+  const [successName, setSuccessName] = useState("");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [locationState, setLocationState] = useState<LocationState>({
     status: "idle",
@@ -124,6 +125,7 @@ export function NurseRegisterPage() {
           ? { latitude: form.latitude, longitude: form.longitude }
           : {}),
       });
+      setSuccessName(form.name);
       setSuccess(true);
       setForm(EMPTY);
       setLocationState({ status: "idle" });
@@ -160,7 +162,9 @@ export function NurseRegisterPage() {
                 {t("register.success.title")}
               </p>
               <p className="text-sm text-muted-foreground mt-0.5">
-                {t("register.success.desc")}
+                {successName
+                  ? `${successName} has been registered. You will appear in the admin dashboard shortly.`
+                  : t("register.success.desc")}
               </p>
             </div>
           </div>

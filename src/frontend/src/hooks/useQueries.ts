@@ -2,10 +2,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Feedback, Nurse, ServiceProof } from "../backend";
 import { useActor } from "./useActor";
 
-export function useListAllNurses() {
+export function useListAllNurses(refreshKey = 0) {
   const { actor } = useActor();
   return useQuery<Nurse[]>({
-    queryKey: ["nurses"],
+    queryKey: ["nurses", refreshKey],
     queryFn: async () => {
       if (!actor) return [];
       return actor.listAllNurses();
@@ -15,7 +15,7 @@ export function useListAllNurses() {
     gcTime: 0,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
-    refetchInterval: 5000,
+    refetchInterval: 3000,
   });
 }
 

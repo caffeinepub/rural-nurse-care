@@ -515,15 +515,25 @@ export function AdminDashboardPage() {
   const [expandedProofs, setExpandedProofs] = useState<Set<string>>(new Set());
   const [editingNurseId, setEditingNurseId] = useState<string | null>(null);
 
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+
   const { actor } = useActor();
-  const { data: nurses, isLoading, refetch } = useListAllNurses();
+  const { data: nurses, isLoading } = useListAllNurses(refreshKey);
   const deleteMutation = useDeleteNurse();
   const qc = useQueryClient();
 
   const doRefresh = useCallback(() => {
+    setRefreshKey((prev) => prev + 1);
     qc.invalidateQueries({ queryKey: ["nurses"] });
-    refetch();
-  }, [qc, refetch]);
+  }, [qc]);
+
+  // Update lastRefreshed when data loads
+  useEffect(() => {
+    if (!isLoading && authed && nurses !== undefined) {
+      setLastRefreshed(new Date());
+    }
+  }, [isLoading, authed, nurses]);
 
   const didMountRef = useRef(false);
   // Re-fetch when admin logs in
@@ -640,24 +650,34 @@ export function AdminDashboardPage() {
             <Shield className="w-5 h-5 text-blue-600" />
             <span className="font-bold text-gray-800">Admin Dashboard</span>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={doRefresh}
-              className="text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded-lg px-3 py-1 flex items-center gap-1"
-              data-ocid="admin.secondary_button"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Refresh
-            </button>
-            <button
-              type="button"
-              onClick={logout}
-              className="text-sm text-gray-500 hover:text-gray-800 border border-gray-300 rounded-lg px-3 py-1"
-              data-ocid="admin.button"
-            >
-              Logout
-            </button>
+          <div className="flex flex-col items-end gap-0.5">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={doRefresh}
+                disabled={isLoading}
+                className="text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded-lg px-3 py-1 flex items-center gap-1 disabled:opacity-60"
+                data-ocid="admin.secondary_button"
+              >
+                <RefreshCw
+                  className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`}
+                />
+                Refresh
+              </button>
+              <button
+                type="button"
+                onClick={logout}
+                className="text-sm text-gray-500 hover:text-gray-800 border border-gray-300 rounded-lg px-3 py-1"
+                data-ocid="admin.button"
+              >
+                Logout
+              </button>
+            </div>
+            {lastRefreshed && (
+              <span className="text-xs text-gray-400">
+                Last updated: {lastRefreshed.toLocaleTimeString()}
+              </span>
+            )}
           </div>
         </div>
       </header>
@@ -813,8 +833,7 @@ export function AdminDashboardPage() {
                       nurse={nurse}
                       onClose={() => setEditingNurseId(null)}
                       onSaved={() => {
-                        qc.invalidateQueries({ queryKey: ["nurses"] });
-                        refetch();
+                        doRefresh();
                       }}
                     />
                   )}
