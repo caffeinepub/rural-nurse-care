@@ -100,7 +100,7 @@ export function useAddNurse() {
   return useMutation({
     mutationFn: async (nurse: Nurse) => {
       if (!actor) throw new Error("Not connected");
-      return actor.addNurse(nurse);
+      return actor.registerNurse(nurse);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["nurses"] });

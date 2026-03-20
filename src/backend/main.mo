@@ -1,9 +1,5 @@
-import Array "mo:core/Array";
-import Iter "mo:core/Iter";
 import Map "mo:core/Map";
 import Nat "mo:core/Nat";
-import Int "mo:core/Int";
-import Order "mo:core/Order";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
 import Text "mo:core/Text";
@@ -61,39 +57,44 @@ actor {
     createdAt : Time.Time;
   };
 
-  // Stable storage (survives upgrades / redeployments)
-  stable var stableNurses : [Nurse] = [];
-  stable var stableFeedbacks : [Feedback] = [];
-  stable var stableServiceProofs : [ServiceProof] = [];
+  // Stable storage (survives upgrades AND restarts)
+  // IMPORTANT: Never cleared - kept as persistent backup
+  var stableNurses : [Nurse] = [];
+  var stableFeedbacks : [Feedback] = [];
+  var stableServiceProofs : [ServiceProof] = [];
 
-  // In-memory working maps
+  // In-memory working maps - populated from stable arrays on every startup
   let userProfiles = Map.empty<Principal, UserProfile>();
   let nurses = Map.empty<Text, Nurse>();
   let feedbacks = Map.empty<Text, Feedback>();
   let serviceProofs = Map.empty<Text, ServiceProof>();
 
-  // Restore maps from stable arrays after every upgrade
-  system func postupgrade() {
+  // Restore in-memory maps from stable arrays at actor startup.
+  // This runs on EVERY canister start (fresh deploy, upgrade, OR restart),
+  // ensuring data is never lost due to heap resets.
+  do {
     for (n in stableNurses.vals()) {
       nurses.add(n.id, n);
     };
-    stableNurses := [];
     for (f in stableFeedbacks.vals()) {
       feedbacks.add(f.id, f);
     };
-    stableFeedbacks := [];
     for (sp in stableServiceProofs.vals()) {
       serviceProofs.add(sp.id, sp);
     };
-    stableServiceProofs := [];
   };
 
-  // Save maps to stable arrays before every upgrade
+  // Before an upgrade: snapshot in-memory maps to stable arrays.
+  // stableNurses is kept populated (never cleared) so restarts can also restore.
   system func preupgrade() {
     stableNurses := nurses.values().toArray();
     stableFeedbacks := feedbacks.values().toArray();
     stableServiceProofs := serviceProofs.values().toArray();
   };
+
+  // After an upgrade: maps are already restored by the actor-body `do` block above.
+  // Nothing extra needed here.
+  system func postupgrade() {};
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -123,6 +124,8 @@ actor {
       Runtime.trap("Nurse already exists with this ID");
     };
     nurses.add(nurse.id, nurse);
+    // Immediately persist to stable storage so data survives any restart
+    stableNurses := nurses.values().toArray();
   };
 
   // Update nurse details - no ICP auth (admin uses frontend password)
@@ -133,6 +136,7 @@ actor {
       case (?_) {
         nurses.remove(nurse.id);
         nurses.add(nurse.id, nurse);
+        stableNurses := nurses.values().toArray();
       };
     };
   };
@@ -140,6 +144,7 @@ actor {
   // Delete nurse - no ICP auth (admin uses frontend password)
   public shared func deleteNurse(nurseId : Text) : async () {
     nurses.remove(nurseId);
+    stableNurses := nurses.values().toArray();
   };
 
   // Nurse toggles their own availability using credentials
@@ -171,6 +176,7 @@ actor {
         };
         nurses.remove(nurse.id);
         nurses.add(nurse.id, updated);
+        stableNurses := nurses.values().toArray();
       };
     };
   };
@@ -204,6 +210,7 @@ actor {
         };
         nurses.remove(nurse.id);
         nurses.add(nurse.id, updated);
+        stableNurses := nurses.values().toArray();
       };
     };
   };
@@ -229,6 +236,7 @@ actor {
       case (null) { Runtime.trap("Nurse does not exist") };
       case (?_) {
         feedbacks.add(feedback.id, feedback);
+        stableFeedbacks := feedbacks.values().toArray();
       };
     };
   };
@@ -256,6 +264,7 @@ actor {
       Runtime.trap("Service proof already exists with this ID");
     };
     serviceProofs.add(proof.id, proof);
+    stableServiceProofs := serviceProofs.values().toArray();
   };
 
   // Update service proof - no ICP auth (admin uses frontend password)
@@ -265,6 +274,7 @@ actor {
       case (?_) {
         serviceProofs.remove(proof.id);
         serviceProofs.add(proof.id, proof);
+        stableServiceProofs := serviceProofs.values().toArray();
       };
     };
   };
@@ -272,6 +282,7 @@ actor {
   // Delete service proof - no ICP auth (admin uses frontend password)
   public shared func deleteServiceProof(proofId : Text) : async () {
     serviceProofs.remove(proofId);
+    stableServiceProofs := serviceProofs.values().toArray();
   };
 
   public query func getNurseServiceProofs(nurseId : Text) : async [ServiceProof] {
@@ -294,12 +305,18 @@ actor {
   };
 
   func validateNurse(nurse : Nurse) {
-    let pinLength = nurse.pincode.toText().size();
-    if (pinLength != 6) {
-      Runtime.trap("Invalid PIN code. Must be 6 digits");
+    if (nurse.name == "") {
+      Runtime.trap("Name is required");
+    };
+    if (nurse.phone == "") {
+      Runtime.trap("Phone number is required");
     };
     if (nurse.registrationNumber == "") {
       Runtime.trap("Nursing Council Registration Number is required");
+    };
+    let pinStr = nurse.pincode.toText();
+    if (pinStr.size() != 6) {
+      Runtime.trap("Invalid PIN code. Must be exactly 6 digits (e.g. 530001)");
     };
   };
 };

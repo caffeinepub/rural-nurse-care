@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useActor } from "../hooks/useActor";
 import { useRegisterNurse } from "../hooks/useQueries";
 import { v4 as uuidv4 } from "../utils/uuid";
 
@@ -63,6 +64,7 @@ export function NurseRegisterPage() {
   const [locationState, setLocationState] = useState<LocationState>({
     status: "idle",
   });
+  const { actor, isFetching: actorLoading } = useActor();
   const registerNurse = useRegisterNurse();
 
   const set = (
@@ -526,7 +528,7 @@ export function NurseRegisterPage() {
 
             <Button
               type="submit"
-              disabled={registerNurse.isPending}
+              disabled={registerNurse.isPending || actorLoading || !actor}
               className="w-full h-12 text-base font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
               data-ocid="register.submit_button"
             >

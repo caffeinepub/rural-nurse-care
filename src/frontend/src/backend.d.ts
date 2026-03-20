@@ -59,7 +59,6 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
-    addNurse(nurse: Nurse): Promise<void>;
     addServiceProof(proof: ServiceProof): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     deleteNurse(nurseId: string): Promise<void>;
