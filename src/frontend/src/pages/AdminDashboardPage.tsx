@@ -12,9 +12,10 @@ import {
   Trash2,
   Video,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { Nurse, ServiceProof } from "../backend";
+import { useActor } from "../hooks/useActor";
 import {
   useDeleteNurse,
   useDeleteServiceProof,
@@ -514,18 +515,31 @@ export function AdminDashboardPage() {
   const [expandedProofs, setExpandedProofs] = useState<Set<string>>(new Set());
   const [editingNurseId, setEditingNurseId] = useState<string | null>(null);
 
+  const { actor } = useActor();
   const { data: nurses, isLoading, refetch } = useListAllNurses();
   const deleteMutation = useDeleteNurse();
   const qc = useQueryClient();
 
+  const doRefresh = useCallback(() => {
+    qc.invalidateQueries({ queryKey: ["nurses"] });
+    refetch();
+  }, [qc, refetch]);
+
   const didMountRef = useRef(false);
+  // Re-fetch when admin logs in
   useEffect(() => {
     if (authed) {
-      qc.invalidateQueries({ queryKey: ["nurses"] });
-      refetch();
+      doRefresh();
     }
     didMountRef.current = true;
-  }, [authed, qc, refetch]);
+  }, [authed, doRefresh]);
+
+  // Also re-fetch when actor becomes ready (handles initial page load)
+  useEffect(() => {
+    if (actor && authed) {
+      doRefresh();
+    }
+  }, [actor, authed, doRefresh]);
 
   function login(e: React.FormEvent) {
     e.preventDefault();
@@ -548,8 +562,7 @@ export function AdminDashboardPage() {
       onSuccess: () => {
         toast.success("Nurse profile deleted.");
         setConfirmId(null);
-        qc.invalidateQueries({ queryKey: ["nurses"] });
-        refetch();
+        doRefresh();
       },
       onError: () => {
         toast.error("Failed to delete. Please try again.");
@@ -630,10 +643,7 @@ export function AdminDashboardPage() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => {
-                qc.invalidateQueries({ queryKey: ["nurses"] });
-                refetch();
-              }}
+              onClick={doRefresh}
               className="text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded-lg px-3 py-1 flex items-center gap-1"
               data-ocid="admin.secondary_button"
             >
