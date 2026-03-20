@@ -541,6 +541,11 @@ export function NurseRegisterPage() {
                 t("register.submit")
               )}
             </Button>
+            {(!actor || actorLoading) && (
+              <p className="text-xs text-center text-gray-400 mt-1">
+                Connecting to network, please wait...
+              </p>
+            )}
           </form>
         </div>
 

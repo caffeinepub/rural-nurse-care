@@ -12,7 +12,7 @@ import {
   Trash2,
   Video,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { Nurse, ServiceProof } from "../backend";
 import { useActor } from "../hooks/useActor";
@@ -535,21 +535,13 @@ export function AdminDashboardPage() {
     }
   }, [isLoading, authed, nurses]);
 
-  const didMountRef = useRef(false);
-  // Re-fetch when admin logs in
-  useEffect(() => {
-    if (authed) {
-      doRefresh();
-    }
-    didMountRef.current = true;
-  }, [authed, doRefresh]);
-
-  // Also re-fetch when actor becomes ready (handles initial page load)
+  // Re-fetch once when both actor and authed are ready
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional - doRefresh excluded to avoid infinite loop
   useEffect(() => {
     if (actor && authed) {
       doRefresh();
     }
-  }, [actor, authed, doRefresh]);
+  }, [actor, authed]);
 
   function login(e: React.FormEvent) {
     e.preventDefault();

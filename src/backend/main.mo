@@ -59,9 +59,9 @@ actor {
 
   // Stable storage (survives upgrades AND restarts)
   // IMPORTANT: Never cleared - kept as persistent backup
-  var stableNurses : [Nurse] = [];
-  var stableFeedbacks : [Feedback] = [];
-  var stableServiceProofs : [ServiceProof] = [];
+  stable var stableNurses : [Nurse] = [];
+  stable var stableFeedbacks : [Feedback] = [];
+  stable var stableServiceProofs : [ServiceProof] = [];
 
   // In-memory working maps - populated from stable arrays on every startup
   let userProfiles = Map.empty<Principal, UserProfile>();
