@@ -5,30 +5,49 @@
  *   - "Canister ... trapped explicitly: <REASON>"
  *   - "Reject text: <REASON>"
  *   - "message: '<REASON>'" or "message: \"<REASON>\""
- *   - "AgentError: ..."
+ *   - AgentHTTPResponseError with nested body
  *   - Raw JavaScript errors (TypeError, SyntaxError, etc.)
  */
 export function extractICPError(err: unknown): {
   message: string;
   code: string;
 } {
-  // Capture both message and stringified form to maximize pattern coverage
-  let raw = "";
+  // Build the fullest possible raw string from all available properties
+  const parts: string[] = [];
+
   if (err instanceof Error) {
-    raw = err.message;
-    // Sometimes the real cause is nested
-    if ((err as Error & { cause?: unknown }).cause) {
-      const cause = (err as Error & { cause?: unknown }).cause;
-      raw += `\n${cause instanceof Error ? cause.message : String(cause)}`;
+    if (err.message) parts.push(err.message);
+    if (err.stack) parts.push(err.stack);
+    const anyErr = err as unknown as Record<string, unknown>;
+    if (anyErr.cause) {
+      const c = anyErr.cause;
+      parts.push(c instanceof Error ? c.message : String(c));
     }
+    // AgentHTTPResponseError has a `response` property
+    if (anyErr.response) {
+      try {
+        parts.push(JSON.stringify(anyErr.response));
+      } catch {}
+    }
+    // Some SDK errors expose `reject_message` or `errorCode`
+    for (const key of [
+      "reject_message",
+      "errorCode",
+      "description",
+      "details",
+    ]) {
+      if (anyErr[key]) parts.push(String(anyErr[key]));
+    }
+  } else if (typeof err === "object" && err !== null) {
+    try {
+      parts.push(JSON.stringify(err));
+    } catch {}
+    parts.push(String(err));
   } else {
-    raw = String(err);
+    parts.push(String(err));
   }
 
-  // Also check toString in case message is empty
-  if (!raw && err) {
-    raw = String(err);
-  }
+  const raw = parts.join("\n");
 
   // Log full error to console for debugging
   console.error("[ICP Error Raw]", raw, err);
@@ -36,7 +55,6 @@ export function extractICPError(err: unknown): {
   // ---- ICP canister trap patterns ----
 
   // Format 1: "trapped explicitly: <REASON>"
-  // Format 2: "IC0503: Canister xxx trapped explicitly: <REASON>"
   const trapPatterns = [
     /trapped explicitly[:\s]+([^\n]+)/i,
     /trapped explicitly[:\s]+([\s\S]+?)(?:\n\n|\r\n\r\n|$)/i,
@@ -57,8 +75,7 @@ export function extractICPError(err: unknown): {
     }
   }
 
-  // Format 3: description field in JSON body
-  // e.g. "description": "IC0503: Canister ... trapped explicitly: message"
+  // Format 2: description field in JSON body
   const descMatch = raw.match(/"description"\s*:\s*"([^"]+)"/);
   if (descMatch) {
     const full = descMatch[1];
@@ -66,12 +83,18 @@ export function extractICPError(err: unknown): {
     if (innerTrap) {
       const reason = innerTrap[1].trim();
       const code = toErrorCode(reason);
-      console.error(`[ICP Error Code: ${code}] ${reason}`);
       return { message: reason, code };
     }
     const code = toErrorCode(full);
-    console.error(`[ICP Error Code: ${code}] ${full}`);
     return { message: full, code };
+  }
+
+  // Format 3: reject_message field
+  const rejectMsgMatch = raw.match(/"reject_message"\s*:\s*"([^"]+)"/);
+  if (rejectMsgMatch) {
+    const reason = rejectMsgMatch[1].trim();
+    const code = toErrorCode(reason);
+    return { message: reason, code };
   }
 
   // Format 4: Reject text
@@ -79,7 +102,6 @@ export function extractICPError(err: unknown): {
   if (rejectMatch) {
     const reason = rejectMatch[1].trim();
     const code = toErrorCode(reason);
-    console.error(`[ICP Error Code: ${code}] ${reason}`);
     return { message: reason, code };
   }
 
@@ -88,7 +110,6 @@ export function extractICPError(err: unknown): {
   if (quotedMatch) {
     const reason = quotedMatch[1].trim();
     const code = toErrorCode(reason);
-    console.error(`[ICP Error Code: ${code}] ${reason}`);
     return { message: reason, code };
   }
 
@@ -97,8 +118,23 @@ export function extractICPError(err: unknown): {
   if (icCodeMatch) {
     const reason = icCodeMatch[1].trim();
     const code = toErrorCode(reason);
-    console.error(`[ICP Error Code: ${code}] ${reason}`);
     return { message: reason, code };
+  }
+
+  // Format 7: Try to parse as JSON and look for any message/reason fields
+  for (const part of parts) {
+    try {
+      const parsed = JSON.parse(part) as Record<string, unknown>;
+      for (const key of ["message", "reason", "error", "detail", "text"]) {
+        if (typeof parsed[key] === "string" && parsed[key]) {
+          const reason = String(parsed[key]);
+          const code = toErrorCode(reason);
+          return { message: reason, code };
+        }
+      }
+    } catch {
+      /* not JSON, skip */
+    }
   }
 
   // Not connected / actor not ready
@@ -108,9 +144,8 @@ export function extractICPError(err: unknown): {
       !raw.toLowerCase().includes("canister")) ||
     raw.toLowerCase().includes("canister_id")
   ) {
-    console.error("[ICP Error Code: E001] Backend not ready");
     return {
-      message: "Backend not ready. Please wait a moment and try again. [E001]",
+      message: "Backend not ready. Please wait a moment and try again.",
       code: "E001",
     };
   }
@@ -121,34 +156,32 @@ export function extractICPError(err: unknown): {
     raw.toLowerCase().includes("networkerror") ||
     raw.toLowerCase().includes("network error")
   ) {
-    console.error("[ICP Error Code: E005] Network error");
     return {
       message:
-        "Network error. Please check your internet connection and try again. [E005]",
+        "Network error. Please check your internet connection and try again.",
       code: "E005",
     };
   }
 
-  // BigInt conversion errors (e.g. invalid pincode)
+  // BigInt conversion errors
   if (
     raw.toLowerCase().includes("bigint") ||
     raw.toLowerCase().includes("cannot convert")
   ) {
-    console.error("[ICP Error Code: E013] Invalid number format");
     return {
       message:
-        "Invalid number in form (Pincode must be exactly 6 digits). Please check your entries. [E013]",
+        "Invalid number in form (Pincode must be exactly 6 digits). Please check your entries.",
       code: "E013",
     };
   }
 
-  // Fallback E099: show raw error so we can see what happened
-  const code = "E099";
-  const displayMessage = raw.length > 300 ? `${raw.substring(0, 300)}...` : raw;
-  console.error(`[ICP Error Code: ${code}] ${raw}`);
+  // Fallback E099: show full raw text (truncated) so the user can debug
+  const displayMessage =
+    raw.length > 400 ? `${raw.substring(0, 400)}...` : raw || "Unknown error";
+  console.error(`[ICP Error Code: E099] Full raw: ${raw}`);
   return {
-    message: `Registration error. Please try again. If the problem persists, open browser console (F12) and note the full error. Raw: ${displayMessage}`,
-    code,
+    message: `Registration failed (E099). Open browser console (F12) for full error. Summary: ${displayMessage}`,
+    code: "E099",
   };
 }
 
