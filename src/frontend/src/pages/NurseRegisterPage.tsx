@@ -107,22 +107,53 @@ export function NurseRegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
+
+    // Pre-flight validation to catch JS errors before hitting the canister
+    if (!form.name.trim()) {
+      setSubmitError("[E010] Name is required");
+      return;
+    }
+    if (!form.phone.trim()) {
+      setSubmitError("[E011] Phone number is required");
+      return;
+    }
+    if (!form.registrationNumber.trim()) {
+      setSubmitError("[E012] Nursing Council Registration Number is required");
+      return;
+    }
+    if (!form.pincode.trim() || !/^\d{6}$/.test(form.pincode.trim())) {
+      setSubmitError("[E013] Pincode must be exactly 6 digits (e.g. 530001)");
+      return;
+    }
     if (form.latitude === undefined || form.longitude === undefined) {
       setSubmitError(t("register.location.required"));
       return;
     }
+
+    let pincodeBig: bigint;
+    let experienceBig: bigint;
+    try {
+      pincodeBig = BigInt(form.pincode.trim());
+      experienceBig = BigInt(form.experience.trim() || "0");
+    } catch {
+      setSubmitError(
+        "[E013] Invalid number in Pincode or Experience fields. Please check your entries.",
+      );
+      return;
+    }
+
     try {
       await registerNurse.mutateAsync({
         id: uuidv4(),
-        name: form.name,
-        registrationNumber: form.registrationNumber,
-        phone: form.phone,
-        village: form.village,
-        mandal: form.mandal,
-        district: form.district,
-        pincode: BigInt(form.pincode),
-        experience: BigInt(form.experience || "0"),
-        bio: form.bio,
+        name: form.name.trim(),
+        registrationNumber: form.registrationNumber.trim(),
+        phone: form.phone.trim(),
+        village: form.village.trim(),
+        mandal: form.mandal.trim(),
+        district: form.district.trim(),
+        pincode: pincodeBig,
+        experience: experienceBig,
+        bio: form.bio.trim(),
         isAvailable: form.isAvailable,
         ...(form.latitude !== undefined && form.longitude !== undefined
           ? { latitude: form.latitude, longitude: form.longitude }

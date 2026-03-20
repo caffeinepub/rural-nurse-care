@@ -1,11 +1,12 @@
 /**
  * Extracts a human-readable error message from an ICP canister rejection.
  *
- * Canister trap messages look like:
- *   "Call was rejected: Reject code: 5, Reject text: Canister lvzw7-...-cai trapped explicitly: <REASON>"
- *
- * This utility strips the boilerplate and returns just the <REASON>, plus a
- * short error code for logging.
+ * Handles multiple SDK error formats:
+ *   - "Canister ... trapped explicitly: <REASON>"
+ *   - "Reject text: <REASON>"
+ *   - "message: '<REASON>'" or "message: \"<REASON>\""
+ *   - "AgentError: ..."
+ *   - Raw JavaScript errors (TypeError, SyntaxError, etc.)
  */
 export function extractICPError(err: unknown): {
   message: string;
@@ -14,10 +15,12 @@ export function extractICPError(err: unknown): {
   const raw = err instanceof Error ? err.message : String(err);
 
   // Log full error to console for debugging
-  console.error("[ICP Error]", raw);
+  console.error("[ICP Error Raw]", raw);
 
-  // Try to extract the trap reason
-  const trapMatch = raw.match(/trapped explicitly:\s*(.+)$/);
+  // Try to extract the trap reason (handle multiline with 's' flag equivalent)
+  const trapMatch = raw.match(
+    /trapped explicitly[:\s]+([\s\S]+?)(?:\s*$|\n\n)/,
+  );
   if (trapMatch) {
     const reason = trapMatch[1].trim();
     const code = toErrorCode(reason);
@@ -25,8 +28,17 @@ export function extractICPError(err: unknown): {
     return { message: reason, code };
   }
 
+  // Alternative trap format
+  const trapMatch2 = raw.match(/trapped[^:]*:\s*(.+)/);
+  if (trapMatch2) {
+    const reason = trapMatch2[1].trim();
+    const code = toErrorCode(reason);
+    console.error(`[ICP Error Code: ${code}] ${reason}`);
+    return { message: reason, code };
+  }
+
   // Try to extract generic reject text
-  const rejectMatch = raw.match(/Reject text:\s*(.+?)(?:,|$)/);
+  const rejectMatch = raw.match(/[Rr]eject[\s_]text[:\s]+(.+?)(?:,|$)/m);
   if (rejectMatch) {
     const reason = rejectMatch[1].trim();
     const code = toErrorCode(reason);
@@ -34,8 +46,21 @@ export function extractICPError(err: unknown): {
     return { message: reason, code };
   }
 
-  // Not connected
-  if (raw.toLowerCase().includes("not connected")) {
+  // Try quoted message format (single or double quotes)
+  const quotedMatch = raw.match(/message[:\s]+['"]([^'"]+)['"]/i);
+  if (quotedMatch) {
+    const reason = quotedMatch[1].trim();
+    const code = toErrorCode(reason);
+    console.error(`[ICP Error Code: ${code}] ${reason}`);
+    return { message: reason, code };
+  }
+
+  // Not connected / actor not ready
+  if (
+    raw.toLowerCase().includes("not connected") ||
+    raw.toLowerCase().includes("actor") ||
+    raw.toLowerCase().includes("canister_id")
+  ) {
     console.error("[ICP Error Code: E001] Backend not ready");
     return {
       message: "Backend not ready. Please wait a moment and try again.",
@@ -43,10 +68,41 @@ export function extractICPError(err: unknown): {
     };
   }
 
-  // Fallback
+  // Network/fetch errors
+  if (
+    raw.toLowerCase().includes("fetch") ||
+    raw.toLowerCase().includes("network") ||
+    raw.toLowerCase().includes("failed to fetch")
+  ) {
+    console.error("[ICP Error Code: E005] Network error");
+    return {
+      message:
+        "Network error. Please check your internet connection and try again.",
+      code: "E005",
+    };
+  }
+
+  // BigInt conversion errors (e.g. invalid pincode)
+  if (
+    raw.toLowerCase().includes("bigint") ||
+    raw.toLowerCase().includes("convert")
+  ) {
+    console.error("[ICP Error Code: E013] Invalid number format");
+    return {
+      message:
+        "Invalid number in form (e.g. Pincode must be exactly 6 digits). Please check your entries.",
+      code: "E013",
+    };
+  }
+
+  // Fallback: show the actual raw error so user can see what happened
   const code = "E000";
+  const displayMessage = raw.length > 200 ? `${raw.substring(0, 200)}...` : raw;
   console.error(`[ICP Error Code: ${code}] ${raw}`);
-  return { message: "An unexpected error occurred. Please try again.", code };
+  return {
+    message: `Unexpected error: ${displayMessage}`,
+    code,
+  };
 }
 
 function toErrorCode(reason: string): string {

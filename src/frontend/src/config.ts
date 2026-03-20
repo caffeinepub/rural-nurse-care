@@ -80,15 +80,33 @@ export async function loadConfig(): Promise<Config> {
   }
 }
 
+/**
+ * Extracts the human-readable part of an ICP agent error.
+ * Handles both single-quote and double-quote formats, plus
+ * newer SDK formats that omit the 'with message' wrapper.
+ */
 function extractAgentErrorMessage(error: string): string {
   const errorString = String(error);
-  const match = errorString.match(/with message:\s*'([^']+)'/s);
-  return match ? match[1] : errorString;
+
+  // Try single-quoted format: with message: '...'
+  const singleMatch = errorString.match(/with message:\s*'([\s\S]+?)'/);
+  if (singleMatch) return singleMatch[1];
+
+  // Try double-quoted format: with message: "..."
+  const doubleMatch = errorString.match(/with message:\s*"([\s\S]+?)"/); 
+  if (doubleMatch) return doubleMatch[1];
+
+  // Try colon format: message: ...
+  const colonMatch = errorString.match(/message:\s*([^\n]+)/);
+  if (colonMatch) return colonMatch[1];
+
+  // Return full string if no pattern matched
+  return errorString;
 }
 
 function processError(e: unknown): never {
   if (e && typeof e === "object" && "message" in e) {
-    throw new Error(extractAgentErrorMessage(`${e.message}`));
+    throw new Error(extractAgentErrorMessage(`${(e as {message: string}).message}`));
   }
   throw e;
 }
