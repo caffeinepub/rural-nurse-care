@@ -15,7 +15,6 @@ export function useListAllNurses(refreshKey = 0) {
     gcTime: 0,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
-    refetchInterval: 3000,
   });
 }
 
@@ -196,19 +195,13 @@ export function useGetNurseServiceProofs(nurseId: string) {
   });
 }
 
-/**
- * Simulates updating a service proof by deleting the old one and adding a
- * new one with the same data (minus removed media). The backend does not
- * expose an updateServiceProof method, so this is a delete + re-add.
- */
 export function useUpdateServiceProof() {
   const { actor } = useActor();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (proof: ServiceProof) => {
       if (!actor) throw new Error("Not connected");
-      await actor.deleteServiceProof(proof.id);
-      await actor.addServiceProof(proof);
+      await actor.updateServiceProof(proof);
     },
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ["serviceProofs", variables.nurseId] });

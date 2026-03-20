@@ -15,6 +15,7 @@ import { useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useActor } from "../hooks/useActor";
 import { useRegisterNurse } from "../hooks/useQueries";
+import { extractICPError } from "../utils/icpError";
 import { v4 as uuidv4 } from "../utils/uuid";
 
 interface FormState {
@@ -132,8 +133,8 @@ export function NurseRegisterPage() {
       setForm(EMPTY);
       setLocationState({ status: "idle" });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t("register.failed");
-      setSubmitError(msg);
+      const { message, code } = extractICPError(err);
+      setSubmitError(`[${code}] ${message}`);
     }
   };
 
@@ -522,7 +523,11 @@ export function NurseRegisterPage() {
                 className="text-sm text-destructive bg-destructive/10 rounded-lg px-4 py-3"
                 data-ocid="register.error_state"
               >
-                {submitError || t("register.failed")}
+                {submitError
+                  ? submitError
+                  : registerNurse.error
+                    ? extractICPError(registerNurse.error).message
+                    : t("register.failed")}
               </div>
             )}
 

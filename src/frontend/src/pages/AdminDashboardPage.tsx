@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   ChevronDown,
   ChevronUp,
@@ -20,10 +19,10 @@ import {
   useDeleteNurse,
   useDeleteServiceProof,
   useGetNurseServiceProofs,
-  useListAllNurses,
   useUpdateNurse,
   useUpdateServiceProof,
 } from "../hooks/useQueries";
+import { extractICPError } from "../utils/icpError";
 
 const ADMIN_PASSWORD = "Yuva@9849";
 
@@ -76,8 +75,9 @@ function EditNurseForm({ nurse, onClose, onSaved }: EditNurseFormProps) {
         onSaved();
         onClose();
       },
-      onError: () => {
-        toast.error("Failed to update nurse details.");
+      onError: (err: unknown) => {
+        const { message, code } = extractICPError(err);
+        toast.error(`[${code}] ${message}`);
       },
     });
   }
@@ -514,34 +514,46 @@ export function AdminDashboardPage() {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [expandedProofs, setExpandedProofs] = useState<Set<string>>(new Set());
   const [editingNurseId, setEditingNurseId] = useState<string | null>(null);
-
-  const [refreshKey, setRefreshKey] = useState(0);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
 
+  const [nurses, setNurses] = useState<Nurse[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   const { actor } = useActor();
-  const { data: nurses, isLoading } = useListAllNurses(refreshKey);
   const deleteMutation = useDeleteNurse();
-  const qc = useQueryClient();
 
-  const doRefresh = useCallback(() => {
-    setRefreshKey((prev) => prev + 1);
-    qc.invalidateQueries({ queryKey: ["nurses"] });
-  }, [qc]);
-
-  // Update lastRefreshed when data loads
-  useEffect(() => {
-    if (!isLoading && authed && nurses !== undefined) {
+  const fetchNurses = useCallback(async () => {
+    if (!actor) return;
+    setIsLoading(true);
+    setFetchError(null);
+    try {
+      const result = await actor.listAllNurses();
+      setNurses(result);
       setLastRefreshed(new Date());
+    } catch (err) {
+      const { message, code } = extractICPError(err);
+      setFetchError(`[${code}] ${message} — Click Refresh to retry.`);
+    } finally {
+      setIsLoading(false);
     }
-  }, [isLoading, authed, nurses]);
+  }, [actor]);
 
-  // Re-fetch once when both actor and authed are ready
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional - doRefresh excluded to avoid infinite loop
+  // Auto-fetch when actor is ready and user is logged in
   useEffect(() => {
     if (actor && authed) {
-      doRefresh();
+      fetchNurses();
     }
-  }, [actor, authed]);
+  }, [actor, authed, fetchNurses]);
+
+  // Poll every 4 seconds when logged in
+  useEffect(() => {
+    if (!actor || !authed) return;
+    const interval = setInterval(() => {
+      fetchNurses();
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [actor, authed, fetchNurses]);
 
   function login(e: React.FormEvent) {
     e.preventDefault();
@@ -564,10 +576,11 @@ export function AdminDashboardPage() {
       onSuccess: () => {
         toast.success("Nurse profile deleted.");
         setConfirmId(null);
-        doRefresh();
+        fetchNurses();
       },
-      onError: () => {
-        toast.error("Failed to delete. Please try again.");
+      onError: (err: unknown) => {
+        const { message, code } = extractICPError(err);
+        toast.error(`[${code}] ${message}`);
         setConfirmId(null);
       },
     });
@@ -646,7 +659,7 @@ export function AdminDashboardPage() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={doRefresh}
+                onClick={fetchNurses}
                 disabled={isLoading}
                 className="text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded-lg px-3 py-1 flex items-center gap-1 disabled:opacity-60"
                 data-ocid="admin.secondary_button"
@@ -677,14 +690,24 @@ export function AdminDashboardPage() {
       <main className="max-w-4xl mx-auto px-4 py-6">
         <h2 className="text-lg font-semibold text-gray-700 mb-4">
           Registered Nurses
-          {!isLoading && nurses && (
+          {!isLoading && nurses.length > 0 && (
             <span className="ml-2 text-sm font-normal text-gray-400">
               ({nurses.length} total)
             </span>
           )}
         </h2>
 
-        {isLoading && (
+        {/* Fetch error banner */}
+        {fetchError && (
+          <div
+            className="mb-4 bg-amber-50 border border-amber-300 text-amber-800 rounded-lg px-4 py-3 text-sm"
+            data-ocid="admin.error_state"
+          >
+            {fetchError}
+          </div>
+        )}
+
+        {isLoading && nurses.length === 0 && (
           <div
             className="text-center py-12 text-gray-400"
             data-ocid="admin.loading_state"
@@ -693,7 +716,7 @@ export function AdminDashboardPage() {
           </div>
         )}
 
-        {!isLoading && (!nurses || nurses.length === 0) && (
+        {!isLoading && nurses.length === 0 && !fetchError && (
           <div
             className="text-center py-12 bg-white rounded-xl border"
             data-ocid="admin.empty_state"
@@ -702,7 +725,7 @@ export function AdminDashboardPage() {
           </div>
         )}
 
-        {!isLoading && nurses && nurses.length > 0 && (
+        {nurses.length > 0 && (
           <div className="space-y-3" data-ocid="admin.list">
             {nurses.map((nurse, idx) => {
               let photoUrl: string | undefined;
@@ -825,7 +848,7 @@ export function AdminDashboardPage() {
                       nurse={nurse}
                       onClose={() => setEditingNurseId(null)}
                       onSaved={() => {
-                        doRefresh();
+                        fetchNurses();
                       }}
                     />
                   )}
